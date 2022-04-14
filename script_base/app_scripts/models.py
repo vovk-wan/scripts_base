@@ -1,14 +1,15 @@
 from django.db import models
+from django.contrib.auth.base_user import AbstractBaseUser
 
 
-class Client(models.Model):
+class Client(AbstractBaseUser):
     name = models.CharField(max_length=30, verbose_name='name user')
-    login = models.CharField(max_length=30, verbose_name='name user')
-    email_address = models.EmailField(verbose_name='name user')
-    status = models.CharField(max_length=10, verbose_name='status user')
+    status = models.CharField(max_length=10, verbose_name='status user')  # BAN
+    telegram_id = models.IntegerField(verbose_name='telegram id')
+    description = models.TextField()
 
     class Meta:
-        db_table = 'client'
+        db_table = 'clients'
 
 
 class License(models.Model):
@@ -19,4 +20,4 @@ class License(models.Model):
     expiration_date = models.DateTimeField(blank=False, verbose_name='Expiration date')
 
     class Meta:
-        db_table = 'clients_license'
+        db_table = 'client_licenses'

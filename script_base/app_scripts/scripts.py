@@ -22,6 +22,7 @@ BASE = ScriptBase()
 
 def add_to_base(foo: callable) -> Callable:
     BASE.add_foo(foo)
+
     def wrapper(*args, **kwargs):
         return foo(*args, **kwargs)
 
@@ -31,6 +32,7 @@ def add_to_base(foo: callable) -> Callable:
 @add_to_base
 def test1(*args, **kwargs) -> Dict:
     # some happened
+
     return {name: [args, value] for name, value in kwargs.items()}
 
 
