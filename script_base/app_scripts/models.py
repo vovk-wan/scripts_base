@@ -2,9 +2,11 @@ from django.db import models
 from django.contrib.auth.base_user import AbstractBaseUser
 
 
-class Client(AbstractBaseUser):
+class Client(models.Model):
     name = models.CharField(max_length=30, verbose_name='name user')
     status = models.CharField(max_length=10, verbose_name='status user')  # BAN
+    chat_user = models.CharField(max_length=10, verbose_name='Chat user')  # пользователи чата доступ ко всем серверам
+    expiration_date = models.DateTimeField(blank=False, verbose_name='Expiration date')
     telegram_id = models.IntegerField(verbose_name='telegram id')
     description = models.TextField()
 
