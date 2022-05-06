@@ -9,9 +9,16 @@ https://docs.djangoproject.com/en/4.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
-
+import datetime
+import sys
 from pathlib import Path
+import os
 
+from dotenv import load_dotenv
+from loguru import logger
+
+
+load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -31,13 +38,13 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'app_scripts',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'app_scripts.apps.AppScriptsConfig',
 ]
 
 MIDDLEWARE = [
@@ -74,13 +81,29 @@ WSGI_APPLICATION = 'script_base.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+
+POSTGRES_DB = os.getenv('POSTGRES_DB')
+POSTGRES_USER = os.getenv('POSTGRES_USER')
+POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD')
+POSTGRES_HOST = os.getenv('POSTGRES_HOST')
+POSTGRES_PORT = os.getenv('POSTGRES_PORT')
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': POSTGRES_DB,
+        'USER': POSTGRES_USER,
+        'PASSWORD': POSTGRES_PASSWORD,
+        'HOST': POSTGRES_HOST,
+        'PORT': POSTGRES_PORT,
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
@@ -110,8 +133,16 @@ TIME_ZONE = 'UTC'
 
 USE_I18N = True
 
+USE_L10N = True
+
 USE_TZ = True
 
+LANGUAGES = [
+    ('ru', 'Русский'),
+    ('en', 'English'),
+]
+
+LOCALE_PATH = [os.path.join(BASE_DIR, 'locale')]
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
@@ -122,3 +153,37 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+
+#  ********** LOGGER CONFIG ********************************
+LOGGING_DIRECTORY = os.path.abspath(os.path.join(BASE_DIR, '..', 'logs'))
+LOGGING_FILENAME = 'scripts_base.log'
+PATH = os.getcwd()
+if not os.path.exists('./logs'):
+    os.mkdir("./logs")
+today = datetime.datetime.today().strftime("%Y-%m-%d")
+file_path = os.path.join(PATH, LOGGING_DIRECTORY, today, LOGGING_FILENAME)
+LOG_LEVEL = "WARNING"
+DEBUG_LEVEL = "INFO"
+if DEBUG:
+    DEBUG_LEVEL = "DEBUG"
+logger_cfg = {
+    "handlers": [
+        {
+            "sink": sys.stdout,
+            "level": DEBUG_LEVEL,
+            "format": "<white>{time:HH:mm:ss}</white> - <yellow>{level}</yellow> | <green>{message}</green>"
+        },
+        {
+            "sink": file_path, "level": LOG_LEVEL,
+            "format": "{time:YYYY-MM-DD HH:mm:ss} - {level} | {message}",
+            "rotation": "50 MB"
+        },
+    ]
+}
+logger.configure(**logger_cfg)
+logger.info('Start logging to:', file_path)
+#  ********** END OF LOGGER CONFIG *************************
