@@ -1,11 +1,11 @@
 import json
 
-# from django.shortcuts import render
+from django.shortcuts import render
 import logging
 
 from django.views import View
 from django.views.generic.detail import SingleObjectMixin
-from django.http import JsonResponse, Http404
+from django.http import JsonResponse, Http404, HttpResponse
 
 from app_scripts.models import License, Client
 from app_scripts.scripts import BASE
@@ -35,7 +35,7 @@ class BaseView(View):
         return Http404('Error, this page not found')
 
 
-class CheckLicense(View):
+class CheckLicenseView(View):
     def post(self, request, *args, **kwargs):
         response = request.body.decode('utf-8')
         try:
@@ -50,7 +50,7 @@ class CheckLicense(View):
         return 'Error decode', 400
 
 
-class Registration(View):
+class RegistrationView(View):
     def post(self, request, *args, **kwargs):
         response = request.body.decode('utf-8')
         try:
@@ -71,3 +71,15 @@ class Registration(View):
             client.delete()
             return 'error', 415
         return 'ok', 200
+
+
+class MyIpView(View):
+    def get(self, request, *args, **kwargs):
+        ip = request.META.get('REMOTE_ADDR')
+        return HttpResponse(ip)
+
+
+class SecondaryMarketView(View):
+
+    def post(self, request, *args, **kwargs):
+        pass
