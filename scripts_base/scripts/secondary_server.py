@@ -108,7 +108,11 @@ class SecondaryManager:
         self.sale_time: float = sale_time
 
     @logger.catch
-    async def main(self: 'SecondaryManager') -> dict:
+    def main(self: 'SecondaryManager') -> dict:
+        return asyncio.run(self._main())
+
+    @logger.catch
+    async def _main(self: 'SecondaryManager') -> dict:
 
         result_data: 'DataStructure' = DataStructure()
 
