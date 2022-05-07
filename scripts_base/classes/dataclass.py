@@ -1,0 +1,18 @@
+class DataStructure:
+
+    def __init__(
+            self: 'DataStructure',
+            code: str = '000000',
+            success: bool = False,
+            message: str = '',
+            data: dict = None,
+            # work_key: str = '',
+    ) -> None:
+        self.code: str = code
+        self.success: bool = success
+        self.message: str = message
+        self.data: dict = data
+        # self.work_key: str = work_key
+
+    def as_dict(self) -> dict:
+        return self.__dict__

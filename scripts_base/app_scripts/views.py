@@ -1,16 +1,22 @@
 import json
 
 from django.shortcuts import render
-import logging
+# import logging
+
 
 from django.views import View
 from django.views.generic.detail import SingleObjectMixin
-from django.http import JsonResponse, Http404, HttpResponse
+from django.http import JsonResponse, Http404, HttpResponse, response
 
 from app_scripts.models import License, Client
 from app_scripts.scripts import BASE
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+from services.service_license import LicenseChecker
+from scripts.secondary_server import SecondaryManager
+
+from config import logger
+
 # Create your views here.
 
 
@@ -27,36 +33,56 @@ def get_client_ip(request):
 class BaseView(View):
 
     def post(self, request, *args, **kwargs):
-        print(request.POST)
-        response = request.body.decode('utf-8')
-        try:
-            data = json.loads(response)
-        except (AttributeError, json.decoder.JSONDecodeError) as exc:
-            logging.info(exc)
-            return 'Error decode', 400
-        name = data.get('name')
-        params = data.get('params')
-        kw = data.get('kwargs')
-        result = BASE(name, params, **kw)
-        return JsonResponse(data=result)
+        pass
+    # print(request.POST)
+        # response = request.body.decode('utf-8')
+        # try:
+        #     data = json.loads(response)
+        # except (AttributeError, json.decoder.JSONDecodeError) as exc:
+        #     logging.info(exc)
+        #     return HttpResponse(b'Error request', response.
+        # name = data.get('name')
+        # params = data.get('params')
+        # kw = data.get('kwargs')
+        # result = BASE(name, params, **kw)
+        # return JsonResponse(data=result)
 
     def get(self):
         return Http404('Error, this page not found')
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class CheckLicenseView(View):
     def post(self, request, *args, **kwargs):
-        response = request.body.decode('utf-8')
+        """
+        Проверяет лицензию если есть записывает какой-то идентификатор запроса и отправляет
+        пользователю запрос на подтверждение.
+        :param request:
+        :return:
+        """
+        request_data = request.body.decode('utf-8')
         try:
-            data = json.loads(response)
+            data = json.loads(request_data)
         except (AttributeError, json.decoder.JSONDecodeError) as exc:
-            logging.info(exc)
-            return 'Error decode', 400
-        secret = data.get('secret')
-        lic = License.objects.get(secret=secret)
-        if lic:
-            return 'ok', 205
-        return 'Error decode', 400
+            logger.info(exc)
+            return HttpResponse('error', status=401)
+        result_data: dict = LicenseChecker(**data).check_license()
+        logger.info(f"Result_data: {result_data}")
+        if result_data.get("success"):
+            return JsonResponse(result_data, status=200)
+        return JsonResponse(result_data, status=401)
+
+        # response = request.body.decode('utf-8')
+        # try:
+        #     data = json.loads(response)
+        # except (AttributeError, json.decoder.JSONDecodeError) as exc:
+        #     logging.info(exc)
+        #     return Http404'Error decode', 400
+        # secret = data.get('secret')
+        # lic = License.objects.get(secret=secret)
+        # if lic:
+        #     return 'ok', 205
+        # return 'Error decode', 400
 
 
 class RegistrationView(View):
@@ -65,7 +91,7 @@ class RegistrationView(View):
         try:
             data = json.loads(response)
         except (AttributeError, json.decoder.JSONDecodeError) as exc:
-            logging.info(exc)
+            logger.error(exc)
             return 'Error decode', 400
         token = data.get('token')
         user_data = data.get('user')
@@ -88,7 +114,37 @@ class MyIpView(View):
         return HttpResponse(ip)
 
 
+@method_decorator(csrf_exempt, name='dispatch')
+class LicenseApproveView(View):
+    def post(self, request, *args, **kwargs):
+        # Проверять - подтвердили ли в телеграме запуск лизензии.
+        result_data: dict = {"success": True}
+        logger.info(f"Result_data: {result_data}")
+
+        return JsonResponse(result_data, status=200)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
 class SecondaryMarketView(View):
 
-    def post(self, request, *args, **kwargs):
-        pass
+    async def post(self, request, *args, **kwargs):
+        request_data = request.body.decode('utf-8')
+        try:
+            data = json.loads(request_data)
+        except (AttributeError, json.decoder.JSONDecodeError) as exc:
+            logger.error(exc)
+            return HttpResponse('error', status=401)
+        result_data: dict = await SecondaryManager(**data).main()
+        logger.info(f"Result_data: {data}")
+
+        if result_data.get("success"):
+            return JsonResponse(result_data, status=200)
+        return JsonResponse(result_data, status=401)
+
+    #
+    # request_data = request.get_json()
+    # result_data: dict = await SecondaryManager(**request_data).main()
+    # logger.info(f"Result_data: {result_data}")
+    # if result_data.get("success"):
+    #     return make_response(result_data, 200)
+    # return make_response(result_data, 401)
