@@ -126,16 +126,17 @@ class LicenseApproveView(View):
 
 @method_decorator(csrf_exempt, name='dispatch')
 class SecondaryMarketView(View):
-
     async def post(self, request, *args, **kwargs):
         request_data = request.body.decode('utf-8')
+        logger.info(f' before json request_data {request_data}')
         try:
             data = json.loads(request_data)
         except (AttributeError, json.decoder.JSONDecodeError) as exc:
             logger.error(exc)
-            return HttpResponse('error', status=401)
+            return JsonResponse({'error': 'error'}, status=401)
+        logger.info("start script")
         result_data: dict = await SecondaryManager(**data).main()
-        logger.info(f"Result_data: {data}")
+        logger.info(f"Result_data: {result_data}")
 
         if result_data.get("success"):
             return JsonResponse(result_data, status=200)
