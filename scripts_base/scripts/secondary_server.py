@@ -128,8 +128,6 @@ class SecondaryManager:
         while self.sale_time > current_time:
             current_time = time.time()
         results: list[str] = await self._do_purchase(workers=workers)
-        # lenght = len(workers)
-        # results = [json.dumps({key: value}) for key in range(lenght) for value in range(lenght, lenght * 2)]
         result_data.success = True
         result_data.data = {'results': results}
 
@@ -159,7 +157,10 @@ class SecondaryManager:
 
         logger.info("Collecting requests. It will take a few seconds...")
         async with aiohttp.ClientSession(headers=self.__HEADERS) as session:
-            tasks: list = [await worker.get_tasks(session) for worker in workers]
+            tasks = []
+            for worker in workers:
+                spam: list = await worker.get_tasks(session)
+                tasks.extend(spam)
             t0 = datetime.datetime.now()
             logger.info(f"Requests started at: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
             responses = await asyncio.gather(*tasks)
