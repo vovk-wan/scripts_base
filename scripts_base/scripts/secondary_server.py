@@ -127,9 +127,9 @@ class SecondaryManager:
         current_time = time.time()
         while self.sale_time > current_time:
             current_time = time.time()
-        # results: list[str] = await self._do_purchase(workers=workers)
-        lenght = len(workers)
-        results = [json.dumps({key: value}) for key in range(lenght) for value in range(lenght, lenght * 2)]
+        results: list[str] = await self._do_purchase(workers=workers)
+        # lenght = len(workers)
+        # results = [json.dumps({key: value}) for key in range(lenght) for value in range(lenght, lenght * 2)]
         result_data.success = True
         result_data.data = {'results': results}
 
