@@ -14,6 +14,15 @@ from django.utils.decorators import method_decorator
 # Create your views here.
 
 
+def get_client_ip(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
+
+
 @method_decorator(csrf_exempt, name='dispatch')
 class BaseView(View):
 
@@ -75,7 +84,7 @@ class RegistrationView(View):
 
 class MyIpView(View):
     def get(self, request, *args, **kwargs):
-        ip = request.META.get('REMOTE_ADDR')
+        ip = get_client_ip(request)
         return HttpResponse(ip)
 
 
