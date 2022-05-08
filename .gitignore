@@ -1,4 +1,5 @@
 docker-compose.yml
+.github.env
 
 # Created by .ignore support plugin (hsz.mobi)
 ### Python template
@@ -132,5 +133,3 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# Jetbrains Intellij IDEA
-.idea/
