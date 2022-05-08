@@ -55,3 +55,7 @@ class License(models.Model):
 
     class Meta:
         db_table = 'client_licenses'
+
+    @classmethod
+    def check_license(cls, license_key):
+        pass
