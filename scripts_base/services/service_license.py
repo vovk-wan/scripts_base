@@ -4,7 +4,7 @@ import requests
 # from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 # from dotenv import load_dotenv
 
-from classes.dataclass import DataStructure
+from services.classes.dataclass import DataStructure
 from config import logger
 
 # load_dotenv()

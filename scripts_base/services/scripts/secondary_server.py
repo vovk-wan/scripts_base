@@ -7,7 +7,7 @@ from typing import List
 import aiohttp
 
 from config import logger
-from classes.dataclass import DataStructure
+from services.classes.dataclass import DataStructure
 
 
 class SecondaryServer:
