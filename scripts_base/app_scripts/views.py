@@ -13,7 +13,7 @@ from app_scripts.scripts import BASE
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from services.service_license import LicenseChecker
-from scripts.secondary_server import SecondaryManager
+from services.scripts.secondary_server import SecondaryManager
 
 from config import logger
 
