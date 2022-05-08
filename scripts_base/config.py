@@ -9,7 +9,7 @@ PATH = os.getcwd()
 if not os.path.exists('./logs'):
     os.mkdir("./logs")
 today = datetime.datetime.today().strftime("%Y-%m-%d")
-file_path = os.path.join(os.path.relpath(PATH, start=None), 'logs', today, 'secondary_client.log')
+file_path = os.path.join(os.path.relpath(PATH, start=None), 'logs', today, 'secondary_server.log')
 logger.remove()
 LOG_LEVEL: str = "WARNING"
 DEBUG_LEVEL: str = "INFO"
