@@ -1,18 +1,18 @@
-#  ********** LOGGER CONFIG ********************************
 import os
 import sys
 import datetime
 
 from loguru import logger
 
+#  ********** LOGGER CONFIG ********************************
 PATH = os.getcwd()
 if not os.path.exists('./logs'):
     os.mkdir("./logs")
 today = datetime.datetime.today().strftime("%Y-%m-%d")
-file_path = os.path.join(os.path.relpath(PATH, start=None), 'logs', today, 'secondary_client.log')
+file_path = os.path.join(os.path.relpath(PATH, start=None), 'logs', today, 'secondary_server.log')
 logger.remove()
 LOG_LEVEL: str = "WARNING"
-DEBUG_LEVEL: str = "INFO"
+DEBUG_LEVEL: str = "DEBUG"
 logger.add(sink=file_path, enqueue=True, level=LOG_LEVEL, rotation="50 MB")
 logger.add(sink=sys.stdout, level=DEBUG_LEVEL)
 logger.configure(
