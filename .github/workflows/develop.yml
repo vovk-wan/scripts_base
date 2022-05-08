@@ -1,11 +1,11 @@
-name: scripts_base_test
+name: scripts_base
 env:
   DOCKER_USER: "deskent"
   DOCKER_REPOSITORY_NAME: "deskent"
   PROJECT_NAME: "scripts_base"
   STAGE: "dev"
   VERSION: "ver-${{ github.sha }}"
-  COUNT: "1.0-develop"
+  COUNT: "1.0"
 on:
   push:
     branches: [ test ]
@@ -33,9 +33,9 @@ jobs:
       - name: Executing remote ssh commands using ssh key
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.HOST_PROD }}
+          host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.SSH_KEY_PROD }}
+          key: ${{ secrets.SSH_KEY }}
           script: |
             cd "/home/${{ secrets.USERNAME }}/deploy/${{ env.PROJECT_NAME }}/${{ env.STAGE }}"
             docker-compose -f docker-compose-${{ env.PROJECT_NAME}}-${{ env.STAGE }}.yml down
