@@ -1,10 +1,10 @@
-#  ********** LOGGER CONFIG ********************************
 import os
 import sys
 import datetime
 
 from loguru import logger
 
+#  ********** LOGGER CONFIG ********************************
 PATH = os.getcwd()
 if not os.path.exists('./logs'):
     os.mkdir("./logs")
