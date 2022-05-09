@@ -140,10 +140,176 @@ class SecondaryMarketView(View):
             return JsonResponse(result_data, status=200)
         return JsonResponse(result_data, status=401)
 
-    #
-    # request_data = request.get_json()
-    # result_data: dict = await SecondaryManager(**request_data).main()
-    # logger.info(f"Result_data: {result_data}")
-    # if result_data.get("success"):
-    #     return make_response(result_data, 200)
-    # return make_response(result_data, 401)
+
+@method_decorator(csrf_exempt, name='dispatch')
+class AddLicenseKeyView(View):
+    def post(self, request, *args, **kwargs):
+        result = DataStructure()
+        token = request.headers.get('token')
+        logger.info(f'{self.__class__.__qualname__} token {token}')
+        if not token == 'neyropcycoendocrinoimmunologia':
+            result.status = 401
+            return JsonResponse(result.as_dict(), status=401)
+
+        request_data = request.body.decode('utf-8')
+        logger.info(f'{self.__class__.__qualname__} before json request_data {request_data}')
+        try:
+            data = json.loads(request_data)
+        except (AttributeError, json.decoder.JSONDecodeError) as exc:
+            logger.error(f'{self.__class__.__qualname__}: {exc}')
+            result.status = 400
+            return JsonResponse(result.as_dict(), status=400)
+
+        product_pk = data.get('product_name')
+        client = Client.objects.filter(telegram_id=data.get('telegram_id')).first()
+        client_created = False
+        if not client:
+            client_data = ({
+                    'name': data.get('telegram_id'),
+                    'telegram_id': data.get('telegram_id'),
+                    'expiration_date': datetime.datetime.now()
+                }
+            )
+            client = Client.objects.create(**client_data)
+            client_created = True
+        product = Product.objects.filter(id=product_pk).first()
+        if client and product:
+            data.update()
+            license_data = {
+                'client': client, 'product': product, 'license_key': data.get('license_key')}
+            logger.info(f"{self.__class__.__qualname__}  product: {product}")
+            license_key = LicenseKey.objects.create(**license_data)
+
+            if license_key:
+                license_key_data = model_to_dict(
+                    license_key, fields=[field.name for field in license_key._meta.fields])  # data.to_dict()
+                result.data = {'client_created': client_created, 'license_key': license_key_data}
+                result.success = True
+                return JsonResponse(result.as_dict(), status=200)
+            client.delete() # FIXME  возможно не удалит если не будет продукта важно или нет не ясно
+        result.status = 400
+        return JsonResponse(result.as_dict(), status=400)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class AddProductView(View):
+    def post(self, request, *args, **kwargs):
+        result = DataStructure()
+        token = request.headers.get('token')
+        logger.info(f'{self.__class__.__qualname__} token {token}')
+        if not token == 'neyropcycoendocrinoimmunologia':
+            result.status = 401
+            return JsonResponse(result.as_dict(), status=401)
+
+        request_data = request.body.decode('utf-8')
+        logger.info(f'{self.__class__.__qualname__} before json request_data {request_data}')
+        try:
+            data = json.loads(request_data)
+        except (AttributeError, json.decoder.JSONDecodeError) as exc:
+            logger.error(f'{self.__class__.__qualname__}: {exc}')
+            result.status = 400
+            return JsonResponse(result.as_dict(), status=400)
+
+        product = Product.objects.create(**data)
+        logger.info(f"{self.__class__.__qualname__}  product: {product}")
+
+        if product:
+            product_data = model_to_dict(product, fields=[field.name for field in product._meta.fields])  # data.to_dict()
+            result.data = product_data
+            result.success = True
+            return JsonResponse(result.as_dict(), status=200)
+
+        result.status = 400
+        return JsonResponse(result.as_dict(), status=400)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class GetAllProductsView(View):
+    def post(self, request, *args, **kwargs):
+        result = DataStructure()
+        token = request.headers.get('token')
+        logger.info(f'{self.__class__.__qualname__} token {token}')
+        if not token == 'neyropcycoendocrinoimmunologia':
+            result.status = 401
+            return JsonResponse(result.as_dict(), status=401)
+
+        products = Product.objects.all()
+
+        logger.info(f"{self.__class__.__qualname__}  product: {products}")
+
+        if products:
+            product_data = []
+            for product in products:
+                product_data.append(model_to_dict(product, fields=[field.name for field in
+                                                          product._meta.fields]))  # data.to_dict()
+            result.data =  product_data
+            result.success = True
+            return JsonResponse(result.as_dict(), status=200)
+
+        result.status = 400
+        return JsonResponse(result.as_dict(), status=400)
+
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class ConfirmLicense(View):
+    def post(self, request, *args, **kwargs):
+        result = DataStructure()
+        token = request.headers.get('token')
+        logger.info(f'{self.__class__.__qualname__} token {token}')
+        if not token == 'neyropcycoendocrinoimmunologia':
+            result.status = 401
+            return JsonResponse(result.as_dict(), status=401)
+        request_data = request.body.decode('utf-8')
+        logger.info(f'{self.__class__.__qualname__} before json request_data {request_data}')
+        try:
+            data = json.loads(request_data)
+        except (AttributeError, json.decoder.JSONDecodeError) as exc:
+            logger.error(f'{self.__class__.__qualname__}: {exc}')
+            result.status = 400
+            return JsonResponse(result.as_dict(), status=400)
+
+        license_pk = data.get('license_pk')
+        license_status: LicenseStatus = LicenseStatus.objects.filter(licensekey=license_pk)
+        if license_status:
+            license_status.status = 1
+            result_data = license_status.save(force_update=True)
+            # license_data = model_to_dict(product, fields=[field.name for field in product._meta.fields])  # data.to_dict()
+            # result.data = product_data
+            result.success = True
+            return JsonResponse(result.as_dict(), status=200)
+
+        result.status = 400
+        return JsonResponse(result.as_dict(), status=400)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class NotConfirmLicense(View):
+    def post(self, request, *args, **kwargs):
+        result = DataStructure()
+        token = request.headers.get('token')
+        logger.info(f'{self.__class__.__qualname__} token {token}')
+        if not token == 'neyropcycoendocrinoimmunologia':
+            result.status = 401
+            return JsonResponse(result.as_dict(), status=401)
+        request_data = request.body.decode('utf-8')
+        logger.info(f'{self.__class__.__qualname__} before json request_data {request_data}')
+        try:
+            data = json.loads(request_data)
+        except (AttributeError, json.decoder.JSONDecodeError) as exc:
+            logger.error(f'{self.__class__.__qualname__}: {exc}')
+            result.status = 400
+            return JsonResponse(result.as_dict(), status=400)
+
+        license_pk = data.get('license_pk')
+        license_status: LicenseStatus = LicenseStatus.objects.filter(licensekey=license_pk)
+        if license_status:
+            license_status.status = 0
+            result_data = license_status.save(force_update=True)
+            # license_data = model_to_dict(product, fields=[field.name for field in product._meta.fields])  # data.to_dict()
+            # result.data = product_data
+            result.success = True
+            return JsonResponse(result.as_dict(), status=200)
+
+        result.status = 400
+        return JsonResponse(result.as_dict(), status=400)
