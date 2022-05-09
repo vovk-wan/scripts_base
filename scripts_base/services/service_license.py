@@ -1,7 +1,6 @@
 import os
 
 import requests
-# from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 # from dotenv import load_dotenv
 
 from services.classes.dataclass import DataStructure
@@ -52,17 +51,27 @@ class LicenseChecker:
         telegram_id: int = int(DESKENT_TELEGRAM_ID)
         return telegram_id
 
-    # def _send_approve_message(self, telegram_id: int):
-    #     keyboard = InlineKeyboardMarkup(row_width=3).row(
-    #         InlineKeyboardButton(text="Да", callback_data=f'ДА'),
-    #         InlineKeyboardButton(text="Нет", callback_data=f'НЕТ')
-    #     )
-    #     keys = keyboard.as_json()
-    #     text: str = f"Пришел запрос с вашим ключом {self.license_key}. Если его отправили вы - нажмите Да, иначе - Нет."
-    #     url: str = f"https://api.telegram.org/bot{DESKENT_TEST_BOT}/sendMessage?chat_id={telegram_id}&text={text}&reply_markup={keys}"
-    #     response = requests.get(url)
-    #     logger.debug(f"\nButtons sent."
-    #                  f"\n\tAswer code: {response.status_code}"
-    #                  f"\n\tTelegram_id: {telegram_id} "
-    #                  f"\n\tLicense: {self.license_key}")
-    #     return response.status_code
+    def _send_approve_message(self, telegram_id: int):
+        """Отправляет сообщение в телеграм с кнопками Да и Нет"""
+
+        keys = self._get_keyboard()
+        text: str = f"Пришел запрос с вашим ключом {self.license_key}. Если его отправили вы - нажмите Да, иначе - Нет."
+        url: str = f"https://api.telegram.org/bot{DESKENT_TEST_BOT}/sendMessage?chat_id={telegram_id}&text={text}&reply_markup={keys}"
+        response = requests.get(url)
+        logger.debug(f"\nButtons sent."
+                     f"\n\tAswer code: {response.status_code}"
+                     f"\n\tTelegram_id: {telegram_id} "
+                     f"\n\tLicense: {self.license_key}")
+        return response.status_code
+
+    def _get_keyboard(self) -> dict:
+        """Возвращает инлайн-клавиатуру телеграма в виде словаря с данными о лицензии"""
+
+        # TODO сделать запрос в БД и получить оттуда pk лицензии по ее значению (license_key)
+        # license_pk: int = DB.get_license_pk(self.license_key)
+        license_pk: int = 1
+        data: dict = {"inline_keyboard": [[
+            {"text": "Да", "callback_data": f"yes_{license_pk}"},
+            {"text": "Нет", "callback_data": f"no_{license_pk}"}
+        ]]}
+        return data
