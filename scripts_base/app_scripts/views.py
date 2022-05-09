@@ -63,6 +63,7 @@ class CheckLicenseView(View):
         except (AttributeError, json.decoder.JSONDecodeError) as exc:
             logger.info(exc)
             return HttpResponse('error', status=401)
+        # FIXME тут надо продолжать
         result_data: dict = LicenseChecker(**data).check_license()
         logger.info(f"Result_data: {result_data}")
         if result_data.get("success"):
@@ -273,6 +274,7 @@ class ConfirmLicense(View):
         license_status: LicenseStatus = LicenseStatus.objects.filter(licensekey=license_pk)
         if license_status:
             license_status.status = 1
+            # FIXME test
             result_data = license_status.save(force_update=True)
             # license_data = model_to_dict(product, fields=[field.name for field in product._meta.fields])  # data.to_dict()
             # result.data = product_data
@@ -305,6 +307,7 @@ class NotConfirmLicense(View):
         license_status: LicenseStatus = LicenseStatus.objects.filter(licensekey=license_pk)
         if license_status:
             license_status.status = 0
+            # FIXME test
             result_data = license_status.save(force_update=True)
             # license_data = model_to_dict(product, fields=[field.name for field in product._meta.fields])  # data.to_dict()
             # result.data = product_data
