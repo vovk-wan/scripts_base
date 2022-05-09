@@ -19,42 +19,46 @@ class Client(models.Model):
     status = models.ForeignKey(
         Status,
         related_name='client',
+        blank=True,
+        null=True,
+        default=None,
         verbose_name=_('status user'),
         on_delete=models.CASCADE
     )
     # пользователи чата доступ ко всем серверам
     chat_user = models.BooleanField(default=False, verbose_name=_('Chat user'))
     expiration_date = models.DateTimeField(blank=False, verbose_name=_('Expiration date'))
-    description = models.TextField(max_length='1500', verbose_name=_('Description'))
+    description = models.TextField(default="", max_length='1500', verbose_name=_('Description'))
 
     class Meta:
         db_table = 'clients'
         ordering = ('expiration_date',)
 
 
-class Script(models.Model):
+class Product(models.Model):
     name = models.CharField(max_length=50, verbose_name=_('Script name'))
     description = models.TextField(max_length=1000, verbose_name=_('Description'))
+    file_name = models.CharField(max_length=1000, verbose_name=_('Description'))
 
     class Meta:
-        db_table = 'scripts'
+        db_table = 'products'
 
 
-class License(models.Model):
+class LicenseKey(models.Model):
     client = models.ForeignKey(
         Client,
         related_name='license',
         verbose_name=_('Client'),
         on_delete=models.CASCADE
     )
-    script = models.ForeignKey(
-        Script, related_name='license', verbose_name=_('Client'), on_delete=models.CASCADE)
+    product = models.ForeignKey(
+        Product, related_name='license', verbose_name=_('Client'), on_delete=models.CASCADE)
     licence_key = models.CharField(max_length=100, verbose_name=_('Secret key'))
     created_at = models.DateTimeField(auto_now=True, verbose_name=_('Created'))
-    expiration_date = models.DateTimeField(blank=False, verbose_name=_('Expiration date'))
+    expiration_date = models.DateTimeField(auto_now=True, blank=False, verbose_name=_('Expiration date'))
 
     class Meta:
-        db_table = 'client_licenses'
+        db_table = 'licenses'
 
     @classmethod
     def check_license(cls, license_key):
