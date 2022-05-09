@@ -21,6 +21,7 @@ class LicenseChecker:
     def check_license(self) -> dict:
         telegram_id: int = self._get_telegram_id_if_license_exists()
         if not telegram_id:
+            self.dataclass.status = 401
             self.dataclass.success = False
             self.dataclass.code = '401000'
             self.dataclass.message = "License code is not valid"
