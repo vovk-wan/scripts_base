@@ -4,4 +4,3 @@ psycopg2-binary
 python-dotenv==0.20.0
 aiohttp==3.8.1
 requests~=2.27.1
-aiogram~=2.20
