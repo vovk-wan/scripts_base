@@ -72,7 +72,7 @@ class LicenseChecker:
         # license_pk: int = DB.get_license_pk(self.license_key)
         license_pk: int = 1
         data: dict = {"inline_keyboard": [[
-            {"text": "Да", "callback_data": f"yes_{license_pk}"},
-            {"text": "Нет", "callback_data": f"no_{license_pk}"}
+            {"text": "Да", "callback_data": f"confirmed_{license_pk}"},
+            {"text": "Нет", "callback_data": f"not_confirmed_{license_pk}"}
         ]]}
         return data
