@@ -13,7 +13,7 @@ class Status(models.Model):
 class Client(models.Model):
     # BAN
     name = models.CharField(max_length=50, verbose_name=_('name user'))
-    telegram_id = models.IntegerField(verbose_name=_('telegram id'))
+    telegram_id = models.BigIntegerField(unique=True, verbose_name=_('telegram id'))
     created_at = models.DateTimeField(auto_now=True, verbose_name=_('Client added'))
     active = models.BooleanField(default=False, verbose_name=_('Active'))
     status = models.ForeignKey(
@@ -36,9 +36,9 @@ class Client(models.Model):
 
 
 class Product(models.Model):
-    name = models.CharField(max_length=50, verbose_name=_('Script name'))
+    name = models.CharField(unique=True, max_length=50, verbose_name=_('Script name'))
     description = models.TextField(max_length=1000, verbose_name=_('Description'))
-    file_name = models.CharField(max_length=1000, verbose_name=_('Description'))
+    filename = models.CharField(max_length=1000, verbose_name=_('Description'))
 
     class Meta:
         db_table = 'products'
@@ -47,13 +47,13 @@ class Product(models.Model):
 class LicenseKey(models.Model):
     client = models.ForeignKey(
         Client,
-        related_name='license',
+        related_name='licensekey',
         verbose_name=_('Client'),
         on_delete=models.CASCADE
     )
     product = models.ForeignKey(
         Product, related_name='license', verbose_name=_('Client'), on_delete=models.CASCADE)
-    licence_key = models.CharField(max_length=100, verbose_name=_('Secret key'))
+    license_key = models.CharField(unique=True, max_length=100, verbose_name=_('Secret key'))
     created_at = models.DateTimeField(auto_now=True, verbose_name=_('Created'))
     expiration_date = models.DateTimeField(auto_now=True, blank=False, verbose_name=_('Expiration date'))
 
