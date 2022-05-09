@@ -7,7 +7,7 @@ from typing import List
 import aiohttp
 
 from config import logger
-from classes.dataclass import DataStructure
+from services.classes.dataclass import DataStructure
 
 
 class SecondaryServer:
@@ -50,14 +50,17 @@ class SecondaryServer:
     async def __send_request(self: 'SecondaryServer', url: str, data: dict) -> dict:
 
         self.request_params.update(url=url)
+        self.request_params.update(data=json.dumps(data))
         async with aiohttp.ClientSession(headers=self.__HEADERS) as session:
-            if data:
-                self.request_params.update(data=json.dumps(data))
             logger.debug(f"\n\tRequest with params: \n{self.request_params}\n")
-            async with session.post(**self.request_params) as response:
-                if response.status == 200:
-                    return await response.json()
-                logger.error(f"Request error: {response.status}: {await response.text()}")
+            try:
+                async with session.post(**self.request_params) as response:
+                    if response.status == 200:
+                        return await response.json()
+                    logger.error(f"Request error: {response.status}: {await response.text()}")
+            except Exception as err:
+                logger.error(err)
+        return {}
 
     @logger.catch
     async def get_request_id(self: 'SecondaryServer') -> bool:
@@ -69,7 +72,7 @@ class SecondaryServer:
         logger.debug(f"get_request_id response: {response}")
         if not response:
             return False
-        request_id: str = response.get("data", {}).get("orderNo")
+        request_id: str = response.get("data", {}).get("orderNo", '')
         logger.debug(f"Получен request_id: {request_id}")
         self.__PRODUCT_DATA.update(requestId=request_id)
         return True
@@ -82,7 +85,7 @@ class SecondaryServer:
         data: dict = self.__PRODUCT_DATA
         response: dict = await self.__send_request(url=url, data=data)
         logger.debug(f"check_risk response: {response}")
-        success: bool = response.get("success")
+        success: bool = response.get("success", False)
         logger.debug(f"Получен success: {success}")
 
         return success
