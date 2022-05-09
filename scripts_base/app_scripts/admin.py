@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.utils.translation import gettext as _
-from app_scripts.models import Status, Client, Script, License
+from app_scripts.models import Status, Client, Product, LicenseKey
 
 
 class StatusAdmin(admin.ModelAdmin):
@@ -27,6 +27,6 @@ admin.site.register(Status, StatusAdmin)
 
 admin.site.register(Client, ClientAdmin)
 
-admin.site.register(Script, ScriptAdmin)
+admin.site.register(Product, ScriptAdmin)
 
-admin.site.register(License, LicenseAdmin)
+admin.site.register(LicenseKey, LicenseAdmin)
