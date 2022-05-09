@@ -1,23 +1,20 @@
+import datetime
 import json
 
-from django.shortcuts import render
-# import logging
-
-
+from django.forms import model_to_dict
 from django.views import View
-from django.views.generic.detail import SingleObjectMixin
-from django.http import JsonResponse, Http404, HttpResponse, response
+# from django.views.generic.detail import SingleObjectMixin
+from django.http import JsonResponse, Http404, HttpResponse
 
-from app_scripts.models import License, Client
-from app_scripts.scripts import BASE
+from app_scripts.models import LicenseKey, Client, Product, Status, LicenseStatus
+# from app_scripts.scripts import BASE
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from services.service_license import LicenseChecker
 from services.scripts.secondary_server import SecondaryManager
+from services.classes.dataclass import DataStructure
 
 from config import logger
-
-# Create your views here.
 
 
 def get_client_ip(request):
@@ -70,6 +67,7 @@ class CheckLicenseView(View):
         logger.info(f"Result_data: {result_data}")
         if result_data.get("success"):
             return JsonResponse(result_data, status=200)
+
         return JsonResponse(result_data, status=401)
 
         # response = request.body.decode('utf-8')
@@ -100,7 +98,7 @@ class RegistrationView(View):
         client.save()
         if not client:
             return 'error', 412
-        client_license = License(client=client, **user_license)
+        client_license = LicenseKey(client=client, **user_license)
         client_license.save()
         if not client_license:
             client.delete()
