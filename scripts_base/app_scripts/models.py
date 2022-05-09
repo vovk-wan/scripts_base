@@ -63,3 +63,17 @@ class LicenseKey(models.Model):
     @classmethod
     def check_license(cls, license_key):
         pass
+
+
+class LicenseStatus(models.Model):
+    class Status(models.IntegerChoices):
+        YES = 1
+        NO = 0
+        WAIT = -1
+    licensekey = models.ForeignKey(
+        LicenseKey,
+        related_name='licensestatus',
+        verbose_name=_('License staus'),
+        on_delete=models.CASCADE
+    )
+    status = models.IntegerField(default=0, choices=Status.choices)
