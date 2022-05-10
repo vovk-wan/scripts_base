@@ -252,8 +252,8 @@ class AddProductView(View):
             result.data = product_data
             result.success = True
             if not product_created:
-                result.message = "product already exists"
-                result.status = 204
+                result.message = 'product already exists'
+                # result.status = 204
             return JsonResponse(result.as_dict(), status=result.status)
 
         result.status = 400
