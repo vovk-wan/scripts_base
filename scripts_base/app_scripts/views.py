@@ -273,7 +273,6 @@ class GetAllProductsView(View):
         return JsonResponse(result.as_dict(), status=400)
 
 
-
 @method_decorator(csrf_exempt, name='dispatch')
 class ConfirmLicense(View):
     def post(self, request, *args, **kwargs):
@@ -330,4 +329,5 @@ class NotConfirmLicense(View):
 
 
         result.status = 400
+        result.data = {'count': count, 'result':result_data}
         return JsonResponse(result.as_dict(), status=400)
