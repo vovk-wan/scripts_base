@@ -1,7 +1,10 @@
 import os
+from typing import Union
 
 import requests
 # from dotenv import load_dotenv
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
+from app_scripts.models import LicenseStatus, LicenseKey
 
 from services.classes.dataclass import DataStructure
 from config import logger
@@ -17,9 +20,11 @@ class LicenseChecker:
     def __init__(self, license_key: str):
         self.license_key: str = license_key
         self.dataclass: 'DataStructure' = DataStructure()
+        self.license_key_obj: Union[LicenseKey, None] = None
 
     def check_license(self) -> dict:
-        telegram_id: int = self._get_telegram_id_if_license_exists()
+        """TODO нужны ли инстансы?"""
+        telegram_id = self._get_telegram_id_if_license_exists()
         if not telegram_id:
             self.dataclass.status = 401
             self.dataclass.success = False
@@ -28,34 +33,42 @@ class LicenseChecker:
             self.dataclass.data = {}
             return self.dataclass.as_dict()
 
-        # TODO сгенерирует и запишет в базу к этой лицензии какой то временный ключ
-        # TODO и записать его в редис
-        # work_key: str = ""
-        # self._send_approve_message(telegram_id)
+        # TODO сохранит сессию для запроса если лицензия есть
+        license_status = LicenseStatus.objects.create(licensekey=self.license_key_obj)
         # TODO Для данного пользователя и лицензии поставить флаг "Ожидаю ответ"
+        # TODO DBI ННАДДА!
+
+        # TODO license_status штука 1разовый живет до ответа или по времени
+        # TODO вполне подходит как идентификатор или сюда придется писать идентификатор сессии
+        self._send_approve_message(telegram_id=telegram_id, license_status_pk=license_status.id)
         # DB.set_check_in_progress(self.license_key)
         self.dataclass.success = True
         self.dataclass.code = '000204'
         self.dataclass.message = "License checking in progress"
         # self.dataclass.work_key = work_key
-        self.dataclass.data = {}
+        self.dataclass.data = {
+            'check_status_pk': license_status.id, 'check_status': license_status.status
+        }
 
         return self.dataclass.as_dict()
 
     def _get_telegram_id_if_license_exists(self) -> int:
         """Проверяет есть ли лицензия в БД и возвращает телеграм_ид если лицензия есть"""
         # TODO Запрос в БД и получение оттуда телеграм_ид если лицензия есть
-
-        if self.license_key != "12345":
+        # FIXME 1 действие упразднить функцию?
+        try:
+            self.license_key_obj = LicenseKey.objects.get(license_key=self.license_key)
+        except (ObjectDoesNotExist, MultipleObjectsReturned) as err:
+            logger.info(f'{self.__class__.__qualname__} exception: {err}')
             return 0
-        # telegram_id: int = DB.get_telegram_id(license_key)
-        telegram_id: int = int(DESKENT_TELEGRAM_ID)
+
+        telegram_id: int = self.license_key_obj.client.telegram_id
         return telegram_id
 
-    def _send_approve_message(self, telegram_id: int):
+    def _send_approve_message(self, telegram_id: int, license_status_pk: int):
         """Отправляет сообщение в телеграм с кнопками Да и Нет"""
 
-        keys = self._get_keyboard()
+        keys = self._get_keyboard(license_status_pk)
         text: str = f"Пришел запрос с вашим ключом {self.license_key}. Если его отправили вы - нажмите Да, иначе - Нет."
         url: str = f"https://api.telegram.org/bot{DESKENT_TEST_BOT}/sendMessage?chat_id={telegram_id}&text={text}&reply_markup={keys}"
         response = requests.get(url)
@@ -65,14 +78,11 @@ class LicenseChecker:
                      f"\n\tLicense: {self.license_key}")
         return response.status_code
 
-    def _get_keyboard(self) -> dict:
-        """Возвращает инлайн-клавиатуру телеграма в виде словаря с данными о лицензии"""
+    def _get_keyboard(self, license_status_pk) -> dict:
+        """Возвращает инлайн-клавиатуру телеграма в виде словаря с pk запроса на активацию скрипта"""
 
-        # TODO сделать запрос в БД и получить оттуда pk лицензии по ее значению (license_key)
-        # license_pk: int = DB.get_license_pk(self.license_key)
-        license_pk: int = 1
         data: dict = {"inline_keyboard": [[
-            {"text": "Да", "callback_data": f"confirmed_{license_pk}"},
-            {"text": "Нет", "callback_data": f"not_confirmed_{license_pk}"}
+            {"text": "Да", "callback_data": f"confirmed_{license_status_pk}"},
+            {"text": "Нет", "callback_data": f"not_confirmed_{license_status_pk}"}
         ]]}
         return data
