@@ -35,8 +35,8 @@ class BaseView(View):
         # response = request.body.decode('utf-8')
         # try:
         #     data = json.loads(response)
-        # except (AttributeError, json.decoder.JSONDecodeError) as exc:
-        #     logging.info(exc)
+        # except (AttributeError, json.decoder.JSONDecodeError) as err:
+        #     logging.info(err)
         #     return HttpResponse(b'Error request', response.
         # name = data.get('name')
         # params = data.get('params')
@@ -60,12 +60,12 @@ class CheckLicenseView(View):
         request_data = request.body.decode('utf-8')
         try:
             data = json.loads(request_data)
-        except (AttributeError, json.decoder.JSONDecodeError) as exc:
-            logger.info(exc)
+        except (AttributeError, json.decoder.JSONDecodeError) as err:
+            logger.info(f'{self.__class__.__qualname__} exception: {err}')
             return HttpResponse('error', status=401)
         # FIXME тут надо продолжать
         result_data: dict = LicenseChecker(**data).check_license()
-        logger.info(f"Result_data: {result_data}")
+        logger.info(f"{self.__class__.__qualname__}, Result_data: {result_data}")
         if result_data.get("success"):
             return JsonResponse(result_data, status=200)
 
@@ -74,8 +74,8 @@ class CheckLicenseView(View):
         # response = request.body.decode('utf-8')
         # try:
         #     data = json.loads(response)
-        # except (AttributeError, json.decoder.JSONDecodeError) as exc:
-        #     logging.info(exc)
+        # except (AttributeError, json.decoder.JSONDecodeError) as err:
+        #     logging.info(err)
         #     return Http404'Error decode', 400
         # secret = data.get('secret')
         # lic = License.objects.get(secret=secret)
@@ -89,8 +89,8 @@ class RegistrationView(View):
         response = request.body.decode('utf-8')
         try:
             data = json.loads(response)
-        except (AttributeError, json.decoder.JSONDecodeError) as exc:
-            logger.error(exc)
+        except (AttributeError, json.decoder.JSONDecodeError) as err:
+            logger.info(f'{self.__class__.__qualname__} exception: {err}')
             return 'Error decode', 400
         token = data.get('token')
         user_data = data.get('user')
@@ -120,22 +120,24 @@ class LicenseApproveView(View):
         result_data: dict = {"success": True}
         logger.info(f"Result_data: {result_data}")
 
-        return JsonResponse(result_data, status=200)
+        logger.info(f"{self.__class__.__qualname__}, Result_data: {result_data}")
+
+        return JsonResponse(result_data, status=status)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
 class SecondaryMarketView(View):
     def post(self, request, *args, **kwargs):
         request_data = request.body.decode('utf-8')
-        logger.info(f' before json request_data {request_data}')
+        logger.info(f'{self.__class__.__qualname__}, before json request_data: {request_data}')
         try:
             data = json.loads(request_data)
-        except (AttributeError, json.decoder.JSONDecodeError) as exc:
-            logger.error(exc)
+        except (AttributeError, json.decoder.JSONDecodeError) as err:
+            logger.info(f'{self.__class__.__qualname__}, exception: {err}')
             return JsonResponse({'error': 'error'}, status=401)
-        logger.info("start script")
+        logger.info(f'{self.__class__.__qualname__}, start script')
         result_data: dict = SecondaryManager(**data).main()
-        logger.info(f"Result_data: {result_data}")
+        logger.info(f'{self.__class__.__qualname__}, Result_data: {result_data}')
 
         if result_data.get("success"):
             return JsonResponse(result_data, status=200)
@@ -147,17 +149,17 @@ class AddLicenseKeyView(View):
     def post(self, request, *args, **kwargs):
         result = DataStructure()
         token = request.headers.get('token')
-        logger.info(f'{self.__class__.__qualname__} token {token}')
+        logger.info(f'{self.__class__.__qualname__}, token: {token}')
         if not token == 'neyropcycoendocrinoimmunologia':
             result.status = 401
             return JsonResponse(result.as_dict(), status=401)
 
         request_data = request.body.decode('utf-8')
-        logger.info(f'{self.__class__.__qualname__} before json request_data {request_data}')
+        logger.info(f'{self.__class__.__qualname__} before json request_data: {request_data}')
         try:
             data = json.loads(request_data)
-        except (AttributeError, json.decoder.JSONDecodeError) as exc:
-            logger.error(f'{self.__class__.__qualname__}: {exc}')
+        except (AttributeError, json.decoder.JSONDecodeError) as err:
+            logger.error(f'{self.__class__.__qualname__}, exception: {err}')
             result.status = 400
             return JsonResponse(result.as_dict(), status=400)
 
@@ -197,17 +199,17 @@ class AddProductView(View):
     def post(self, request, *args, **kwargs):
         result = DataStructure()
         token = request.headers.get('token')
-        logger.info(f'{self.__class__.__qualname__} token {token}')
+        logger.info(f'{self.__class__.__qualname__} token: {token}')
         if not token == 'neyropcycoendocrinoimmunologia':
             result.status = 401
             return JsonResponse(result.as_dict(), status=401)
 
         request_data = request.body.decode('utf-8')
-        logger.info(f'{self.__class__.__qualname__} before json request_data {request_data}')
+        logger.info(f'{self.__class__.__qualname__} before json request_data: {request_data}')
         try:
             data = json.loads(request_data)
-        except (AttributeError, json.decoder.JSONDecodeError) as exc:
-            logger.error(f'{self.__class__.__qualname__}: {exc}')
+        except (AttributeError, json.decoder.JSONDecodeError) as err:
+            logger.error(f'{self.__class__.__qualname__}: {err}')
             result.status = 400
             return JsonResponse(result.as_dict(), status=400)
 
@@ -229,7 +231,7 @@ class GetAllProductsView(View):
     def post(self, request, *args, **kwargs):
         result = DataStructure()
         token = request.headers.get('token')
-        logger.info(f'{self.__class__.__qualname__} token {token}')
+        logger.info(f'{self.__class__.__qualname__} token: {token}')
         if not token == 'neyropcycoendocrinoimmunologia':
             result.status = 401
             return JsonResponse(result.as_dict(), status=401)
@@ -257,21 +259,21 @@ class ConfirmLicense(View):
     def post(self, request, *args, **kwargs):
         result = DataStructure()
         token = request.headers.get('token')
-        logger.info(f'{self.__class__.__qualname__} token {token}')
+        logger.info(f'{self.__class__.__qualname__} token: {token}')
         if not token == 'neyropcycoendocrinoimmunologia':
             result.status = 401
             return JsonResponse(result.as_dict(), status=401)
         request_data = request.body.decode('utf-8')
-        logger.info(f'{self.__class__.__qualname__} before json request_data {request_data}')
+        logger.info(f'{self.__class__.__qualname__} before json request_data: {request_data}')
         try:
             data = json.loads(request_data)
-        except (AttributeError, json.decoder.JSONDecodeError) as exc:
-            logger.error(f'{self.__class__.__qualname__}: {exc}')
+        except (AttributeError, json.decoder.JSONDecodeError) as err:
+            logger.error(f'{self.__class__.__qualname__}, exception: {err}')
             result.status = 400
             return JsonResponse(result.as_dict(), status=400)
 
-        license_pk = data.get('license_pk')
-        license_status: LicenseStatus = LicenseStatus.objects.filter(licensekey=license_pk)
+        license_status_pk = data.get('license_status_pk')
+        license_status: LicenseStatus = LicenseStatus.objects.filter(id=license_status_pk).first()
         if license_status:
             license_status.status = 1
             # FIXME test
@@ -288,31 +290,24 @@ class ConfirmLicense(View):
 @method_decorator(csrf_exempt, name='dispatch')
 class NotConfirmLicense(View):
     def post(self, request, *args, **kwargs):
-        result = DataStructure()
+        result: DataStructure = DataStructure()
         token = request.headers.get('token')
-        logger.info(f'{self.__class__.__qualname__} token {token}')
+        logger.info(f'{self.__class__.__qualname__} token: {token}')
         if not token == 'neyropcycoendocrinoimmunologia':
             result.status = 401
             return JsonResponse(result.as_dict(), status=401)
         request_data = request.body.decode('utf-8')
-        logger.info(f'{self.__class__.__qualname__} before json request_data {request_data}')
+        logger.info(f'{self.__class__.__qualname__} before json request_data: {request_data}')
         try:
             data = json.loads(request_data)
-        except (AttributeError, json.decoder.JSONDecodeError) as exc:
-            logger.error(f'{self.__class__.__qualname__}: {exc}')
+        except (AttributeError, json.decoder.JSONDecodeError) as err:
+            logger.error(f'{self.__class__.__qualname__}, exception: {err}')
             result.status = 400
             return JsonResponse(result.as_dict(), status=400)
 
-        license_pk = data.get('license_pk')
-        license_status: LicenseStatus = LicenseStatus.objects.filter(licensekey=license_pk)
-        if license_status:
-            license_status.status = 0
-            # FIXME test
-            result_data = license_status.save(force_update=True)
-            # license_data = model_to_dict(product, fields=[field.name for field in product._meta.fields])  # data.to_dict()
-            # result.data = product_data
-            result.success = True
-            return JsonResponse(result.as_dict(), status=200)
+        license_status_pk = data.get('license_status_pk')
+        count, result_data = LicenseStatus.objects.filter(id=license_status_pk).delete()
+
 
         result.status = 400
         return JsonResponse(result.as_dict(), status=400)
