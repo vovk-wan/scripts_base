@@ -211,7 +211,7 @@ class AddLicenseKeyView(View):
                 result.success = True
                 if not license_key_created:
                     result.message = 'license alrtady exists'
-                    result.status = 204
+                    result.status = 208
                 return JsonResponse(result.as_dict(), status=result.status)
             if client_created:
                 client.delete() # FIXME  возможно не удалит если не будет продукта важно или нет не ясно
@@ -253,7 +253,7 @@ class AddProductView(View):
             result.success = True
             if not product_created:
                 result.message = 'product already exists'
-                # result.status = 204
+                result.status = 208
             return JsonResponse(result.as_dict(), status=result.status)
 
         result.status = 400
@@ -372,7 +372,7 @@ class DeleteProductView(View):
 
         product_id = data.get('product_id')
         deleted, count = Product.objects.filter(id=product_id).delete()
-        result.status = 200 if deleted else 204
+        result.status = 200 if deleted else 208
         result.message = '' if deleted else 'deletion error '
         result.data = {'deleted': deleted}
         return JsonResponse(result.as_dict(), status=result.status)
