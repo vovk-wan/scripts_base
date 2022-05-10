@@ -34,7 +34,6 @@ class LicenseChecker:
             return self.dataclass.as_dict()
 
         # TODO сохранит сессию для запроса если лицензия есть
-        # work_key: str = ""
         license_status = LicenseStatus.objects.create(licensekey=self.license_key_obj)
         # TODO Для данного пользователя и лицензии поставить флаг "Ожидаю ответ"
         # TODO DBI ННАДДА!
@@ -62,10 +61,8 @@ class LicenseChecker:
         except (ObjectDoesNotExist, MultipleObjectsReturned) as err:
             logger.info(f'{self.__class__.__qualname__} exception: {err}')
             return 0
-        # if self.license_key != "12345":
-        #     return 0
-        # telegram_id: int = DB.get_telegram_id(license_key)
-        telegram_id: int = self.license_key_obj.client.telegram_id  # int(DESKENT_TELEGRAM_ID)
+
+        telegram_id: int = self.license_key_obj.client.telegram_id
         return telegram_id
 
     def _send_approve_message(self, telegram_id: int, license_status_pk: int):

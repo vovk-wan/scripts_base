@@ -62,14 +62,12 @@ class CheckLicenseView(View):
             data = json.loads(request_data)
         except (AttributeError, json.decoder.JSONDecodeError) as err:
             logger.info(f'{self.__class__.__qualname__} exception: {err}')
-            return HttpResponse('error', status=401)
-        # FIXME тут надо продолжать
+            return HttpResponse('JSON error', status=400)
+
         result_data: dict = LicenseChecker(**data).check_license()
         logger.info(f"{self.__class__.__qualname__}, Result_data: {result_data}")
-        if result_data.get("success"):
-            return JsonResponse(result_data, status=200)
 
-        return JsonResponse(result_data, status=401)
+        return JsonResponse(result_data, status=result_data.get('status'))
 
         # response = request.body.decode('utf-8')
         # try:
@@ -130,11 +128,9 @@ class LicenseApproveView(View):
         license_pk = data.get('license_pk')
         license_status: LicenseStatus = LicenseStatus.objects.filter(licensekey=license_pk).first()
         result_data: dict = {"success": False}
-        status = 300
+        status = 404
         if license_status:
-            # TODO вопрос лучше присылать явно или удалять до?
-            # TODO до было бы проще и реакция по сути та же самая
-            # TODO статус тут вообще менять? какой когда ждем? какой когда пошел в ж?
+            # TODO присылать данные result_data?
             result_data: dict = {"success": True if license_status.status == 1 else None}
             status = 200 if license_status.status == 1 else 401
 
@@ -220,6 +216,7 @@ class AddProductView(View):
         result = DataStructure()
         token = request.headers.get('token')
         logger.info(f'{self.__class__.__qualname__} token: {token}')
+        # TODO снести секрет в ENV
         if not token == 'neyropcycoendocrinoimmunologia':
             result.status = 401
             return JsonResponse(result.as_dict(), status=401)
@@ -231,7 +228,7 @@ class AddProductView(View):
         except (AttributeError, json.decoder.JSONDecodeError) as err:
             logger.error(f'{self.__class__.__qualname__}: {err}')
             result.status = 400
-            return JsonResponse(result.as_dict(), status=400)
+            return JsonResponse(result.as_dict(), status=result.status)
 
         product = Product.objects.create(**data)
         logger.info(f"{self.__class__.__qualname__}  product: {product}")
@@ -240,10 +237,10 @@ class AddProductView(View):
             product_data = model_to_dict(product, fields=[field.name for field in product._meta.fields])  # data.to_dict()
             result.data = product_data
             result.success = True
-            return JsonResponse(result.as_dict(), status=200)
+            return JsonResponse(result.as_dict(), status=result.status)
 
         result.status = 400
-        return JsonResponse(result.as_dict(), status=400)
+        return JsonResponse(result.as_dict(), status=result.status)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -254,7 +251,7 @@ class GetAllProductsView(View):
         logger.info(f'{self.__class__.__qualname__} token: {token}')
         if not token == 'neyropcycoendocrinoimmunologia':
             result.status = 401
-            return JsonResponse(result.as_dict(), status=401)
+            return JsonResponse(result.as_dict(), status=result.status)
 
         products = Product.objects.all()
 
