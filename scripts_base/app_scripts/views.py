@@ -116,9 +116,27 @@ class MyIpView(View):
 @method_decorator(csrf_exempt, name='dispatch')
 class LicenseApproveView(View):
     def post(self, request, *args, **kwargs):
+        result = DataStructure()
         # Проверять - подтвердили ли в телеграме запуск лизензии.
-        result_data: dict = {"success": True}
-        logger.info(f"Result_data: {result_data}")
+        request_data = request.body.decode('utf-8')
+        logger.info(f'{self.__class__.__qualname__} before json request_data: {request_data}')
+        try:
+            data = json.loads(request_data)
+        except (AttributeError, json.decoder.JSONDecodeError) as err:
+            logger.error(f'{self.__class__.__qualname__}, exception: {err}')
+            result.status = 400
+            return JsonResponse(result.as_dict(), status=400)
+
+        license_pk = data.get('license_pk')
+        license_status: LicenseStatus = LicenseStatus.objects.filter(licensekey=license_pk).first()
+        result_data: dict = {"success": False}
+        status = 300
+        if license_status:
+            # TODO вопрос лучше присылать явно или удалять до?
+            # TODO до было бы проще и реакция по сути та же самая
+            # TODO статус тут вообще менять? какой когда ждем? какой когда пошел в ж?
+            result_data: dict = {"success": True if license_status.status == 1 else None}
+            status = 200 if license_status.status == 1 else 401
 
         logger.info(f"{self.__class__.__qualname__}, Result_data: {result_data}")
 
