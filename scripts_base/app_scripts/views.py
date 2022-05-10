@@ -342,5 +342,33 @@ class NotConfirmLicense(View):
         count, result_data = LicenseStatus.objects.filter(id=license_status_id).delete()
 
         result.status = 400
-        result.data = {'count': count, 'result':result_data}
-        return JsonResponse(result.as_dict(), status=400)
+        result.data = {'count': count, 'result': result_data}
+        return JsonResponse(result.as_dict(), status=result.status)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class DeleteProductView(View):
+    def post(self, request, *args, **kwargs):
+        result: DataStructure = DataStructure()
+        token = request.headers.get('token')
+        logger.info(f'{self.__class__.__qualname__} token: {token}')
+        if not token == 'neyropcycoendocrinoimmunologia':
+            result.status = 401
+            result.message = 'Access is denied'
+            return JsonResponse(result.as_dict(), status=401)
+
+        request_data = request.body.decode('utf-8')
+        logger.info(f'{self.__class__.__qualname__} before json request_data: {request_data}')
+        try:
+            data = json.loads(request_data)
+        except (AttributeError, json.decoder.JSONDecodeError) as err:
+            logger.error(f'{self.__class__.__qualname__}, exception: {err}')
+            result.status = 400
+            return JsonResponse(result.as_dict(), status=result.status)
+
+        product_id = data.get('product_id')
+        deleted, count = Product.objects.filter(id=product_id).delete()
+        result.status = 200 if deleted else 204
+        result.message = '' if deleted else 'deletion error '
+        result.data = {'deleted': deleted}
+        return JsonResponse(result.as_dict(), status=result.status)
