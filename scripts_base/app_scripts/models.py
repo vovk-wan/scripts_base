@@ -58,11 +58,11 @@ class LicenseKey(models.Model):
     expiration_date = models.DateTimeField(auto_now=True, blank=False, verbose_name=_('Expiration date'))
 
     class Meta:
-        db_table = 'licenses'
+        db_table = 'license_keys'
 
     @classmethod
     def check_license(cls, license_key):
-        pass
+        return bool(LicenseKey.objects.filter(license_key=license_key).count())
 
 
 class LicenseStatus(models.Model):
@@ -70,10 +70,14 @@ class LicenseStatus(models.Model):
         YES = 1
         NO = 0
         WAIT = -1
-    licensekey = models.ForeignKey(
+    licensekey = models.OneToOneField(
         LicenseKey,
         related_name='licensestatus',
-        verbose_name=_('License staus'),
+        verbose_name=_('License key'),
         on_delete=models.CASCADE
     )
-    status = models.IntegerField(default=0, choices=Status.choices)
+    status = models.IntegerField(default=-1, choices=Status.choices)
+    created_at = models.DateTimeField(auto_now=True, verbose_name=_('Created'))
+
+    class Meta:
+        db_table = 'licenses_status'
