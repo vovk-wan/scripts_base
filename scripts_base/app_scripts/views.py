@@ -182,6 +182,7 @@ class AddLicenseKeyView(View):
             return JsonResponse(result.as_dict(), status=400)
 
         product_pk = data.get('product_name')
+        # FIXME  частично перенести в бизнес
         client = Client.objects.filter(telegram_id=data.get('telegram_id')).first()
         client_created = False
         if not client:
@@ -207,7 +208,8 @@ class AddLicenseKeyView(View):
                 result.data = {'client_created': client_created, 'license_key': license_key_data}
                 result.success = True
                 return JsonResponse(result.as_dict(), status=200)
-            client.delete() # FIXME  возможно не удалит если не будет продукта важно или нет не ясно
+            if client_created:
+                client.delete() # FIXME  возможно не удалит если не будет продукта важно или нет не ясно
         result.status = 400
         return JsonResponse(result.as_dict(), status=400)
 
