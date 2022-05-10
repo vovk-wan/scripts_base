@@ -13,7 +13,7 @@ class DataStructure:
         self.code: str = code
         self.success: bool = success
         self.message: str = message
-        self.data: dict = data
+        self.data: dict = data or dict()
         # self.work_key: str = work_key
 
     def as_dict(self) -> dict:
