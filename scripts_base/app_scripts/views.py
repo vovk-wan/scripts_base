@@ -125,18 +125,18 @@ class LicenseApproveView(View):
             result.status = 400
             return JsonResponse(result.as_dict(), status=400)
 
-        license_pk = data.get('license_pk')
-        license_status: LicenseStatus = LicenseStatus.objects.filter(licensekey=license_pk).first()
+        license_id = data.get('license_id')
+        license_status: LicenseStatus = LicenseStatus.objects.filter(licensekey=license_id).first()
         result_data: dict = {"success": False}
         status = 404
         if license_status:
             # TODO присылать данные result_data?
             result_data: dict = {"success": True if license_status.status == 1 else None}
-            status = 200 if license_status.status == 1 else 401
-
+            result_data.status = 200 if license_status.status == 1 else 401
+            result.message = '' if license_status.status == 1 else 'Access is denied'
         logger.info(f"{self.__class__.__qualname__}, Result_data: {result_data}")
 
-        return JsonResponse(result_data, status=status)
+        return JsonResponse(result_data, status=result_data.status)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -166,6 +166,7 @@ class AddLicenseKeyView(View):
         logger.info(f'{self.__class__.__qualname__}, token: {token}')
         if not token == 'neyropcycoendocrinoimmunologia':
             result.status = 401
+            result.message = 'Access is denied'
             return JsonResponse(result.as_dict(), status=401)
 
         request_data = request.body.decode('utf-8')
@@ -177,7 +178,7 @@ class AddLicenseKeyView(View):
             result.status = 400
             return JsonResponse(result.as_dict(), status=400)
 
-        product_pk = data.get('product_name')
+        product_id = data.get('product_id')
         # FIXME  частично перенести в бизнес
         client = Client.objects.filter(telegram_id=data.get('telegram_id')).first()
         client_created = False
@@ -190,35 +191,44 @@ class AddLicenseKeyView(View):
             )
             client = Client.objects.create(**client_data)
             client_created = True
-        product = Product.objects.filter(id=product_pk).first()
+        product = Product.objects.filter(id=product_id).first()
         if client and product:
-            data.update()
-            license_data = {
-                'client': client, 'product': product, 'license_key': data.get('license_key')}
-            logger.info(f"{self.__class__.__qualname__}  product: {product}")
-            license_key = LicenseKey.objects.create(**license_data)
+            license_key_created = False
+            license_key = data.get('license_key')
+            license_key_obj = LicenseKey.objects.filter(license_key=license_key).first()
+            if not license_key_obj:
+                license_data = {
+                    'client': client, 'product': product, 'license_key': license_key}
+                logger.info(f"{self.__class__.__qualname__}  product: {product}")
+
+                license_key_obj = LicenseKey.objects.create(**license_data)
+                license_key_created = True
 
             if license_key:
                 license_key_data = model_to_dict(
-                    license_key, fields=[field.name for field in license_key._meta.fields])  # data.to_dict()
+                    license_key_obj, fields=[field.name for field in license_key_obj._meta.fields])  # data.to_dict()
                 result.data = {'client_created': client_created, 'license_key': license_key_data}
                 result.success = True
-                return JsonResponse(result.as_dict(), status=200)
+                if not license_key_created:
+                    result.message = 'license alrtady exists'
+                    result.status = 204
+                return JsonResponse(result.as_dict(), status=result.status)
             if client_created:
                 client.delete() # FIXME  возможно не удалит если не будет продукта важно или нет не ясно
         result.status = 400
-        return JsonResponse(result.as_dict(), status=400)
+        return JsonResponse(result.as_dict(), status=result.status)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
 class AddProductView(View):
     def post(self, request, *args, **kwargs):
-        result = DataStructure()
+        result: DataStructure = DataStructure()
         token = request.headers.get('token')
         logger.info(f'{self.__class__.__qualname__} token: {token}')
         # TODO снести секрет в ENV
         if not token == 'neyropcycoendocrinoimmunologia':
             result.status = 401
+            result.message = 'Access is denied'
             return JsonResponse(result.as_dict(), status=401)
 
         request_data = request.body.decode('utf-8')
@@ -230,13 +240,16 @@ class AddProductView(View):
             result.status = 400
             return JsonResponse(result.as_dict(), status=result.status)
 
-        product = Product.objects.create(**data)
+        product, product_created = Product.objects.get_or_create(**data)
         logger.info(f"{self.__class__.__qualname__}  product: {product}")
 
         if product:
             product_data = model_to_dict(product, fields=[field.name for field in product._meta.fields])  # data.to_dict()
             result.data = product_data
             result.success = True
+            if not product_created:
+                result.message = "product already exists"
+                result.status = 204
             return JsonResponse(result.as_dict(), status=result.status)
 
         result.status = 400
@@ -251,6 +264,7 @@ class GetAllProductsView(View):
         logger.info(f'{self.__class__.__qualname__} token: {token}')
         if not token == 'neyropcycoendocrinoimmunologia':
             result.status = 401
+            result.message = 'Access is denied'
             return JsonResponse(result.as_dict(), status=result.status)
 
         products = Product.objects.all()
@@ -272,12 +286,14 @@ class GetAllProductsView(View):
 
 @method_decorator(csrf_exempt, name='dispatch')
 class ConfirmLicense(View):
+    ## TODO тут данные согласовать
     def post(self, request, *args, **kwargs):
         result = DataStructure()
         token = request.headers.get('token')
         logger.info(f'{self.__class__.__qualname__} token: {token}')
         if not token == 'neyropcycoendocrinoimmunologia':
             result.status = 401
+            result.message = 'Access is denied'
             return JsonResponse(result.as_dict(), status=401)
         request_data = request.body.decode('utf-8')
         logger.info(f'{self.__class__.__qualname__} before json request_data: {request_data}')
@@ -288,8 +304,8 @@ class ConfirmLicense(View):
             result.status = 400
             return JsonResponse(result.as_dict(), status=400)
 
-        license_status_pk = data.get('license_status_pk')
-        license_status: LicenseStatus = LicenseStatus.objects.filter(id=license_status_pk).first()
+        license_status_id = data.get('license_status_id')
+        license_status: LicenseStatus = LicenseStatus.objects.filter(id=license_status_id).first()
         if license_status:
             license_status.status = 1
             # FIXME test
@@ -311,6 +327,7 @@ class NotConfirmLicense(View):
         logger.info(f'{self.__class__.__qualname__} token: {token}')
         if not token == 'neyropcycoendocrinoimmunologia':
             result.status = 401
+            result.message = 'Access is denied'
             return JsonResponse(result.as_dict(), status=401)
         request_data = request.body.decode('utf-8')
         logger.info(f'{self.__class__.__qualname__} before json request_data: {request_data}')
@@ -321,10 +338,37 @@ class NotConfirmLicense(View):
             result.status = 400
             return JsonResponse(result.as_dict(), status=400)
 
-        license_status_pk = data.get('license_status_pk')
-        count, result_data = LicenseStatus.objects.filter(id=license_status_pk).delete()
-
+        license_status_id = data.get('license_status_id')
+        count, result_data = LicenseStatus.objects.filter(id=license_status_id).delete()
 
         result.status = 400
-        result.data = {'count': count, 'result':result_data}
-        return JsonResponse(result.as_dict(), status=400)
+        result.data = {'count': count, 'result': result_data}
+        return JsonResponse(result.as_dict(), status=result.status)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class DeleteProductView(View):
+    def post(self, request, *args, **kwargs):
+        result: DataStructure = DataStructure()
+        token = request.headers.get('token')
+        logger.info(f'{self.__class__.__qualname__} token: {token}')
+        if not token == 'neyropcycoendocrinoimmunologia':
+            result.status = 401
+            result.message = 'Access is denied'
+            return JsonResponse(result.as_dict(), status=401)
+
+        request_data = request.body.decode('utf-8')
+        logger.info(f'{self.__class__.__qualname__} before json request_data: {request_data}')
+        try:
+            data = json.loads(request_data)
+        except (AttributeError, json.decoder.JSONDecodeError) as err:
+            logger.error(f'{self.__class__.__qualname__}, exception: {err}')
+            result.status = 400
+            return JsonResponse(result.as_dict(), status=result.status)
+
+        product_id = data.get('product_id')
+        deleted, count = Product.objects.filter(id=product_id).delete()
+        result.status = 200 if deleted else 204
+        result.message = '' if deleted else 'deletion error '
+        result.data = {'deleted': deleted}
+        return JsonResponse(result.as_dict(), status=result.status)
