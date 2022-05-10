@@ -239,8 +239,12 @@ class AddProductView(View):
             logger.error(f'{self.__class__.__qualname__}: {err}')
             result.status = 400
             return JsonResponse(result.as_dict(), status=result.status)
-
-        product, product_created = Product.objects.get_or_create(**data)
+        product_name = data.get('name')
+        product = Product.objects.filter(name=product_name).first()
+        product_created = False
+        if not product:
+            product = Product.objects.create(**data)
+            product_created = True
         logger.info(f"{self.__class__.__qualname__}  product: {product}")
 
         if product:
