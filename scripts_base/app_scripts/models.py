@@ -64,7 +64,7 @@ class LicenseKey(models.Model):
     def check_license(cls, license_key):
         return bool(LicenseKey.objects.filter(license_key=license_key).count())
 
-
+# TODO сделай проверку перед записью в БД что длина лицензии должна быть == 73
 class LicenseStatus(models.Model):
     class Status(models.IntegerChoices):
         YES = 1
