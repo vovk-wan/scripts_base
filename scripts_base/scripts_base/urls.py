@@ -15,9 +15,12 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from app_scripts.views import MyIpView
 
 urlpatterns = [
-    path('scripts/admin/', admin.site.urls),
-    path('scripts/', include('app_scripts.urls')),
+    path('my_ip', MyIpView.as_view(), name='myip'),
     path('i18n/', include('django.conf.urls.i18n')),
+    path('scripts/', include('app_scripts.urls')),
+    path('scripts/admin/', admin.site.urls),
 ]
+
