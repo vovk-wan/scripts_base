@@ -108,11 +108,11 @@ class RegistrationView(View):
 class MyIpView(View):
     def get(self, request, *args, **kwargs):
         # ip = get_client_ip(request)
-        logger.info('headers: ', request.headers)
+        logger.info(f'headers: {request.headers}')
         # ip1 = request.headers.get('MY_ADDR')
         ip = request.META.get('REMOTE_ADDR')
         # ip3 = request.META.get('HTTP_X_FORWARDED_FOR')
-        logger.info('meta: ', request.META)
+        logger.info(f'meta: {request.META}')
         return HttpResponse(ip)
 
 
