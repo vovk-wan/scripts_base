@@ -108,8 +108,10 @@ class RegistrationView(View):
 class MyIpView(View):
     def get(self, request, *args, **kwargs):
         # ip = get_client_ip(request)
-        ip = request.META.get('REMOTE_ADDR')
-        return HttpResponse(ip)
+        ip1 = request.headers.get('MY_ADDR')
+        ip2 = request.META.get('REMOTE_ADDR')
+        ip3 = request.META.get('HTTP_X_FORWARDED_FOR')
+        return HttpResponse(f'{ip1}<br>{ip2}<br>{ip3}')
 
 
 @method_decorator(csrf_exempt, name='dispatch')
