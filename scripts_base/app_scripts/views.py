@@ -17,15 +17,6 @@ from services.classes.dataclass import DataStructure
 from config import logger
 
 
-def get_client_ip(request):
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-    if x_forwarded_for:
-        ip = x_forwarded_for.split(',')[0]
-    else:
-        ip = request.META.get('REMOTE_ADDR')
-    return ip
-
-
 @method_decorator(csrf_exempt, name='dispatch')
 class BaseView(View):
 
@@ -107,12 +98,7 @@ class RegistrationView(View):
 
 class MyIpView(View):
     def get(self, request, *args, **kwargs):
-        # ip = get_client_ip(request)
-        logger.info(f'headers: {request.headers}')
-        # ip1 = request.headers.get('MY_ADDR')
-        ip = request.META.get('REMOTE_ADDR')
-        # ip3 = request.META.get('HTTP_X_FORWARDED_FOR')
-        logger.info(f'meta: {request.META}')
+        ip = request.headers.get('X_FORWARDED_FOR', 'NO ADDRESS, ').split(',')[0]
         return HttpResponse(ip)
 
 
