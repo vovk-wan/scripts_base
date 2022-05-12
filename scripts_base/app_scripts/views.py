@@ -107,7 +107,8 @@ class RegistrationView(View):
 
 class MyIpView(View):
     def get(self, request, *args, **kwargs):
-        ip = get_client_ip(request)
+        # ip = get_client_ip(request)
+        ip = request.META.get('REMOTE_ADDR')
         return HttpResponse(ip)
 
 
