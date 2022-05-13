@@ -115,12 +115,15 @@ class LicenseApproveView(View):
             logger.error(f'{self.__class__.__qualname__}, exception: {err}')
             result.status = 400
             return JsonResponse(result.as_dict(), status=result.status)
-
-        license_id = data.get('license_id')
-        license_status: LicenseStatus = LicenseStatus.objects.filter(licensekey=license_id).first()
+        result.status = 401
+        result.success = False
+        license_key_secret = data.get('license_key')
+        license_key = LicenseKey.object.filter(license_key=license_key_secret)
+        check_status_id = data.get('check_status_id')
+        license_status: LicenseStatus = LicenseStatus.objects.filter(licensekey=license_key).filter(id=check_status_id).first()
         if license_status:
             # TODO присылать данные result_data?
-            result.success = True if license_status.status == 1 else None
+            result.success = True if license_status.status == 1 else False
             result.status = 200 if license_status.status == 1 else 401
             result.message = '' if license_status.status == 1 else 'Access is denied'
         logger.info(f"{self.__class__.__qualname__}, Result: {result}")
