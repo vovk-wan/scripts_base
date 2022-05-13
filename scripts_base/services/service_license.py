@@ -30,12 +30,12 @@ class LicenseChecker:
             return self.dataclass.as_dict()
 
         # TODO сохранит сессию для запроса если лицензия есть
-        license_status = LicenseStatus.objects.filter(licensekey=self.license_key_obj).first()
-        if license_status:
-            self.dataclass.status = 488
-            self.dataclass.code = '488000'
-            self.dataclass.message = "Data request for this license already exists"
-            return self.dataclass.as_dict()
+        # license_status = LicenseStatus.objects.filter(licensekey=self.license_key_obj).first()
+        # if license_status:
+        #     self.dataclass.status = 488
+        #     self.dataclass.code = '488000'
+        #     self.dataclass.message = "Data request for this license already exists"
+        #     return self.dataclass.as_dict()
         license_status = LicenseStatus.objects.create(licensekey=self.license_key_obj)
         # TODO Для данного пользователя и лицензии поставить флаг "Ожидаю ответ"
         # TODO DBI ННАДДА!

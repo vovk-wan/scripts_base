@@ -70,7 +70,7 @@ class LicenseStatus(models.Model):
         YES = 1
         NO = 0
         WAIT = -1
-    licensekey = models.OneToOneField(
+    licensekey = models.ForeignKey(
         LicenseKey,
         related_name='licensestatus',
         verbose_name=_('License key'),
