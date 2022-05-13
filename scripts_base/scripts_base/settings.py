@@ -181,3 +181,6 @@ logger.configure(
 )
 logger.info(f'Start logging to: {file_path}')
 #  ********** END OF LOGGER CONFIG *************************
+
+DESKENT_TEST_BOT = os.getenv("TELEBOT_TOKEN")
+DESKENT_TELEGRAM_ID = os.getenv("DESKENT_TELEGRAM_ID")
