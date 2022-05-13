@@ -282,6 +282,8 @@ class GetAllProductsView(View):
 @method_decorator(csrf_exempt, name='dispatch')
 class ConfirmLicense(View):
     ## TODO тут данные согласовать
+    ## TODO Уязвимость подмена id  запроса
+    ## TODO нужно проверять телеграм id отправителя
     def post(self, request, *args, **kwargs):
         result = DataStructure()
         token = request.headers.get('token')

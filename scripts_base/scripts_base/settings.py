@@ -185,14 +185,3 @@ logger.info(f'Start logging to: {file_path}')
 DESKENT_TEST_BOT = os.getenv("TELEBOT_TOKEN")
 DESKENT_TELEGRAM_ID = os.getenv("DESKENT_TELEGRAM_ID")
 VOVA_TELEGRAM_ID = os.getenv("VOVA_TELEGRAM_ID")
-
-
-# TODO delete in release
-if __name__ == '__main__':
-    import requests
-    text: str = f"script_base server started"
-    # url: str = f"https://api.telegram.org/bot{DESKENT_TEST_BOT}/sendMessage?chat_id={DESKENT_TELEGRAM_ID}&text={text}"
-    # requests.get(url)
-    url: str = f"https://api.telegram.org/bot{DESKENT_TEST_BOT}/sendMessage?chat_id={VOVA_TELEGRAM_ID}&text={text}"
-    requests.get(url)
-    logger.debug("script_base server started")
