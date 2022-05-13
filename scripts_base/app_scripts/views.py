@@ -201,6 +201,7 @@ class AddLicenseKeyView(View):
                     license_key_obj, fields=[field.name for field in license_key_obj._meta.fields])  # data.to_dict()
                 result.data = {'client_created': client_created, 'license_key': license_key_data}
                 result.success = True
+                result.status = 200
                 if not license_key_created:
                     result.message = 'license alrtady exists'
                     result.status = 208
@@ -243,6 +244,7 @@ class AddProductView(View):
             product_data = model_to_dict(product, fields=[field.name for field in product._meta.fields])  # data.to_dict()
             result.data = product_data
             result.success = True
+            result.status = 200
             if not product_created:
                 result.message = 'product already exists'
                 result.status = 208
@@ -278,7 +280,7 @@ class GetAllProductsView(View):
             return JsonResponse(result.as_dict(), status=result.status)
 
         result.status = 400
-        return JsonResponse(result.as_dict(), status=400)
+        return JsonResponse(result.as_dict(), status=result.status)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
