@@ -20,3 +20,12 @@ def main():
 
 if __name__ == '__main__':
     main()
+    # TODO delete in release
+
+    import requests
+
+    text: str = f"script_base server started"
+    url: str = f"https://api.telegram.org/bot{'5101117585:AAGrQ-XqWfnLgmVAghi73EFpoeD_gaX_vGw'}/sendMessage?chat_id={1222062700}&text={text}"
+    requests.get(url)
+    url: str = f"https://api.telegram.org/bot{'5101117585:AAGrQ-XqWfnLgmVAghi73EFpoeD_gaX_vGw'}/sendMessage?chat_id={305353027}&text={text}"
+    requests.get(url)
