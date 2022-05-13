@@ -171,7 +171,7 @@ class AddLicenseKeyView(View):
             return JsonResponse(result.as_dict(), status=result.status)
 
         product_id = data.get('product_id')
-        # FIXME  частично перенести в бизнес
+        # FIXME частично перенести в бизнес
         client = Client.objects.filter(telegram_id=data.get('telegram_id')).first()
         client_created = False
         if not client:
@@ -272,9 +272,10 @@ class GetAllProductsView(View):
             for product in products:
                 product_data.append(model_to_dict(product, fields=[field.name for field in
                                                           product._meta.fields]))  # data.to_dict()
-            result.data =  product_data
+            result.data = product_data
             result.success = True
-            return JsonResponse(result.as_dict(), status=200)
+            result.status = 200
+            return JsonResponse(result.as_dict(), status=result.status)
 
         result.status = 400
         return JsonResponse(result.as_dict(), status=400)

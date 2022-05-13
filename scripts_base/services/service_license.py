@@ -45,6 +45,7 @@ class LicenseChecker:
         self._send_approve_message(telegram_id=telegram_id, license_status_id=license_status.id)
         # DB.set_check_in_progress(self.license_key)
         self.dataclass.success = True
+        self.dataclass.status = 200
         self.dataclass.code = '000204'
         self.dataclass.message = "License checking in progress"
         # self.dataclass.work_key = work_key
