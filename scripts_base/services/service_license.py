@@ -49,7 +49,7 @@ class LicenseChecker:
         self.dataclass.message = "License checking in progress"
         # self.dataclass.work_key = work_key
         self.dataclass.data = {
-            'check_status_pk': license_status.id, 'check_status': license_status.status
+            'check_status_id': license_status.id, 'check_status': license_status.status
         }
 
         return self.dataclass.as_dict()
