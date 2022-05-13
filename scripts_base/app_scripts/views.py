@@ -118,7 +118,7 @@ class LicenseApproveView(View):
         result.status = 401
         result.success = False
         license_key_secret = data.get('license_key')
-        license_key = LicenseKey.object.filter(license_key=license_key_secret)
+        license_key = LicenseKey.objects.filter(license_key=license_key_secret).first()
         check_status_id = data.get('check_status_id')
         license_status: LicenseStatus = LicenseStatus.objects.filter(licensekey=license_key).filter(id=check_status_id).first()
         if license_status:
