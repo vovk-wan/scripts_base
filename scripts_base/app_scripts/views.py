@@ -105,7 +105,7 @@ class MyIpView(View):
 @method_decorator(csrf_exempt, name='dispatch')
 class LicenseApproveView(View):
     def post(self, request, *args, **kwargs):
-        result = DataStructure()
+        result: DataStructure = DataStructure()
         # Проверять - подтвердили ли в телеграме запуск лизензии.
         request_data = request.body.decode('utf-8')
         logger.info(f'{self.__class__.__qualname__} before json request_data: {request_data}')
@@ -114,20 +114,18 @@ class LicenseApproveView(View):
         except (AttributeError, json.decoder.JSONDecodeError) as err:
             logger.error(f'{self.__class__.__qualname__}, exception: {err}')
             result.status = 400
-            return JsonResponse(result.as_dict(), status=400)
+            return JsonResponse(result.as_dict(), status=result.status)
 
         license_id = data.get('license_id')
         license_status: LicenseStatus = LicenseStatus.objects.filter(licensekey=license_id).first()
-        result_data: dict = {"success": False}
-        status = 404
         if license_status:
             # TODO присылать данные result_data?
-            result_data: dict = {"success": True if license_status.status == 1 else None}
-            result_data.status = 200 if license_status.status == 1 else 401
+            result.success = True if license_status.status == 1 else None
+            result.status = 200 if license_status.status == 1 else 401
             result.message = '' if license_status.status == 1 else 'Access is denied'
-        logger.info(f"{self.__class__.__qualname__}, Result_data: {result_data}")
+        logger.info(f"{self.__class__.__qualname__}, Result: {result}")
 
-        return JsonResponse(result_data, status=result_data.status)
+        return JsonResponse(result.as_dict(), status=result.status)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -167,7 +165,7 @@ class AddLicenseKeyView(View):
         except (AttributeError, json.decoder.JSONDecodeError) as err:
             logger.error(f'{self.__class__.__qualname__}, exception: {err}')
             result.status = 400
-            return JsonResponse(result.as_dict(), status=400)
+            return JsonResponse(result.as_dict(), status=result.status)
 
         product_id = data.get('product_id')
         # FIXME  частично перенести в бизнес
