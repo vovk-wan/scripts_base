@@ -311,7 +311,7 @@ class ConfirmLicense(View):
             return JsonResponse(result.as_dict(), status=200)
 
         result.status = 400
-        return JsonResponse(result.as_dict(), status=400)
+        return JsonResponse(result.as_dict(), status=result.status)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
