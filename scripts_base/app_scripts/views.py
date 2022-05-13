@@ -297,7 +297,7 @@ class ConfirmLicense(View):
         except (AttributeError, json.decoder.JSONDecodeError) as err:
             logger.error(f'{self.__class__.__qualname__}, exception: {err}')
             result.status = 400
-            return JsonResponse(result.as_dict(), status=400)
+            return JsonResponse(result.as_dict(), status=result.status)
 
         license_status_id = data.get('license_status_id')
         license_status: LicenseStatus = LicenseStatus.objects.filter(id=license_status_id).first()
@@ -307,8 +307,9 @@ class ConfirmLicense(View):
             result_data = license_status.save(force_update=True)
             # license_data = model_to_dict(product, fields=[field.name for field in product._meta.fields])  # data.to_dict()
             # result.data = product_data
+            result.status = 200
             result.success = True
-            return JsonResponse(result.as_dict(), status=200)
+            return JsonResponse(result.as_dict(), status=result.status)
 
         result.status = 400
         return JsonResponse(result.as_dict(), status=result.status)
@@ -323,15 +324,15 @@ class NotConfirmLicense(View):
         if not token == 'neyropcycoendocrinoimmunologia':
             result.status = 401
             result.message = 'Access is denied'
-            return JsonResponse(result.as_dict(), status=401)
+            return JsonResponse(result.as_dict(), status=result.status)
         request_data = request.body.decode('utf-8')
         logger.info(f'{self.__class__.__qualname__} before json request_data: {request_data}')
         try:
             data = json.loads(request_data)
         except (AttributeError, json.decoder.JSONDecodeError) as err:
             logger.error(f'{self.__class__.__qualname__}, exception: {err}')
-            result.status = 400
-            return JsonResponse(result.as_dict(), status=400)
+            result.status = 200
+            return JsonResponse(result.as_dict(), status=result.status)
 
         license_status_id = data.get('license_status_id')
         count, result_data = LicenseStatus.objects.filter(id=license_status_id).delete()
