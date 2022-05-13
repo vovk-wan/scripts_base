@@ -2,7 +2,7 @@ class DataStructure:
 
     def __init__(
             self: 'DataStructure',
-            status: int = 200,
+            status: int = 199,
             code: str = '000000',
             success: bool = False,
             message: str = '',
