@@ -1,18 +1,14 @@
+import json
 import os
 from typing import Union
 
 import requests
-# from dotenv import load_dotenv
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from app_scripts.models import LicenseStatus, LicenseKey
 
 from services.classes.dataclass import DataStructure
 from config import logger
-
-# load_dotenv()
-
-DESKENT_TEST_BOT = os.getenv("TELEBOT_TOKEN")
-DESKENT_TELEGRAM_ID = os.getenv("DESKENT_TELEGRAM_ID")
+from scripts_base.settings import DESKENT_TELEGRAM_ID, DESKENT_TEST_BOT as TEST_BOT
 
 
 class LicenseChecker:
@@ -34,13 +30,19 @@ class LicenseChecker:
             return self.dataclass.as_dict()
 
         # TODO сохранит сессию для запроса если лицензия есть
+        license_status = LicenseStatus.objects.filter(licensekey=self.license_key_obj).first()
+        if license_status:
+            self.dataclass.status = 488
+            self.dataclass.code = '488000'
+            self.dataclass.message = "Data request for this license already exists"
+            return self.dataclass.as_dict()
         license_status = LicenseStatus.objects.create(licensekey=self.license_key_obj)
         # TODO Для данного пользователя и лицензии поставить флаг "Ожидаю ответ"
         # TODO DBI ННАДДА!
 
         # TODO license_status штука 1разовый живет до ответа или по времени
         # TODO вполне подходит как идентификатор или сюда придется писать идентификатор сессии
-        self._send_approve_message(telegram_id=telegram_id, license_status_pk=license_status.id)
+        self._send_approve_message(telegram_id=telegram_id, license_status_id=license_status.id)
         # DB.set_check_in_progress(self.license_key)
         self.dataclass.success = True
         self.dataclass.code = '000204'
@@ -65,12 +67,12 @@ class LicenseChecker:
         telegram_id: int = self.license_key_obj.client.telegram_id
         return telegram_id
 
-    def _send_approve_message(self, telegram_id: int, license_status_pk: int):
+    def _send_approve_message(self, telegram_id: int, license_status_id: int):
         """Отправляет сообщение в телеграм с кнопками Да и Нет"""
 
-        keys = self._get_keyboard(license_status_pk)
+        keys = self._get_keyboard(license_status_id)
         text: str = f"Пришел запрос с вашим ключом {self.license_key}. Если его отправили вы - нажмите Да, иначе - Нет."
-        url: str = f"https://api.telegram.org/bot{DESKENT_TEST_BOT}/sendMessage?chat_id={telegram_id}&text={text}&reply_markup={keys}"
+        url: str = f"https://api.telegram.org/bot{TEST_BOT}/sendMessage?chat_id={telegram_id}&text={text}&reply_markup={keys}"
         response = requests.get(url)
         logger.debug(f"\nButtons sent."
                      f"\n\tAswer code: {response.status_code}"
@@ -78,11 +80,11 @@ class LicenseChecker:
                      f"\n\tLicense: {self.license_key}")
         return response.status_code
 
-    def _get_keyboard(self, license_status_pk) -> dict:
+    def _get_keyboard(self, license_status_id) -> json:
         """Возвращает инлайн-клавиатуру телеграма в виде словаря с pk запроса на активацию скрипта"""
 
         data: dict = {"inline_keyboard": [[
-            {"text": "Да", "callback_data": f"confirmed_{license_status_pk}"},
-            {"text": "Нет", "callback_data": f"not_confirmed_{license_status_pk}"}
+            {"text": "Да", "callback_data": f"confirmed_{license_status_id}"},
+            {"text": "Нет", "callback_data": f"not_confirmed_{license_status_id}"}
         ]]}
-        return data
+        return json.dumps(data)
