@@ -17,6 +17,7 @@ from services.classes.dataclass import DataStructure
 
 from config import logger
 
+from services.scripts.celery_test_task import my_task
 
 @method_decorator(csrf_exempt, name='dispatch')
 class BaseView(View):
@@ -375,3 +376,20 @@ class DeleteProductView(View):
         result.message = '' if deleted else 'deletion error '
         result.data = {'deleted': deleted}
         return JsonResponse(result.as_dict(), status=result.status)
+
+
+#  ********************** TEST CELERY *******************************
+
+@method_decorator(csrf_exempt, name='dispatch')
+class TestCeleryView(View):
+    """отсылать не больше 16 -17 в инт, иначе ждать упаришся к примеру 17 примерно на минуту"""
+    def post(self, request, *args, **kwargs):
+        request_data = request.body.decode('utf-8')
+        data = json.loads(request_data)
+        value_str = data.get('value_str')
+        value_int = data.get('value_int')
+        my_task.delay(value_str, value_int)
+        return JsonResponse({'time': datetime.datetime.now(), 'value_int': value_int}, status=200)
+
+
+#  ********************** END TEST CELERY ****************************
