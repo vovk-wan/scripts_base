@@ -10,6 +10,7 @@ from app_scripts.models import LicenseKey, Client, Product, Status, LicenseStatu
 # from app_scripts.scripts import BASE
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+from scripts_base.settings import SECRET_KEY
 from services.service_license import LicenseChecker
 from services.scripts.secondary_server import SecondaryManager
 from services.classes.dataclass import DataStructure
@@ -155,8 +156,8 @@ class AddLicenseKeyView(View):
     def post(self, request, *args, **kwargs):
         result = DataStructure()
         token = request.headers.get('token')
-        logger.info(f'{self.__class__.__qualname__}, token: {token}')
-        if not token == 'neyropcycoendocrinoimmunologia':
+        if not token == SECRET_KEY:
+            logger.info(f'{self.__class__.__qualname__}, token: {token}')
             result.status = 401
             result.message = 'Access is denied'
             return JsonResponse(result.as_dict(), status=401)
@@ -217,9 +218,9 @@ class AddProductView(View):
     def post(self, request, *args, **kwargs):
         result: DataStructure = DataStructure()
         token = request.headers.get('token')
-        logger.info(f'{self.__class__.__qualname__} token: {token}')
         # TODO снести секрет в ENV
-        if not token == 'neyropcycoendocrinoimmunologia':
+        if not token == SECRET_KEY:
+            logger.info(f'{self.__class__.__qualname__} token: {token}')
             result.status = 401
             result.message = 'Access is denied'
             return JsonResponse(result.as_dict(), status=401)
@@ -259,8 +260,8 @@ class GetAllProductsView(View):
     def post(self, request, *args, **kwargs):
         result = DataStructure()
         token = request.headers.get('token')
-        logger.info(f'{self.__class__.__qualname__} token: {token}')
-        if not token == 'neyropcycoendocrinoimmunologia':
+        if not token == SECRET_KEY:
+            logger.info(f'{self.__class__.__qualname__} token: {token}')
             result.status = 401
             result.message = 'Access is denied'
             return JsonResponse(result.as_dict(), status=result.status)
@@ -291,8 +292,8 @@ class ConfirmLicense(View):
     def post(self, request, *args, **kwargs):
         result = DataStructure()
         token = request.headers.get('token')
-        logger.info(f'{self.__class__.__qualname__} token: {token}')
-        if not token == 'neyropcycoendocrinoimmunologia':
+        if not token == SECRET_KEY:
+            logger.info(f'{self.__class__.__qualname__} token: {token}')
             result.status = 401
             result.message = 'Access is denied'
             return JsonResponse(result.as_dict(), status=401)
@@ -326,8 +327,8 @@ class NotConfirmLicense(View):
     def post(self, request, *args, **kwargs):
         result: DataStructure = DataStructure()
         token = request.headers.get('token')
-        logger.info(f'{self.__class__.__qualname__} token: {token}')
-        if not token == 'neyropcycoendocrinoimmunologia':
+        if not token == SECRET_KEY:
+            logger.info(f'{self.__class__.__qualname__} token: {token}')
             result.status = 401
             result.message = 'Access is denied'
             return JsonResponse(result.as_dict(), status=result.status)
@@ -353,8 +354,8 @@ class DeleteProductView(View):
     def post(self, request, *args, **kwargs):
         result: DataStructure = DataStructure()
         token = request.headers.get('token')
-        logger.info(f'{self.__class__.__qualname__} token: {token}')
-        if not token == 'neyropcycoendocrinoimmunologia':
+        if not token == SECRET_KEY:
+            logger.info(f'{self.__class__.__qualname__} token: {token}')
             result.status = 401
             result.message = 'Access is denied'
             return JsonResponse(result.as_dict(), status=401)
