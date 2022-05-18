@@ -157,8 +157,17 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+#  *********************** GET TOKENS *********************************
 
-#  ********** LOGGER CONFIG ********************************
+DESKENT_TEST_BOT = os.getenv("TELEBOT_TOKEN")
+DESKENT_TELEGRAM_ID = os.getenv("DESKENT_TELEGRAM_ID")
+VOVA_TELEGRAM_ID = os.getenv("VOVA_TELEGRAM_ID")
+TELEBOT_TOKEN = os.getenv("TELEBOT_TOKEN")
+SECRET_TOKEN = os.getenv('SECRET_TOKEN')
+
+#  *********************** END GET TOKENS *********************************
+
+#  ************************ LOGGER CONFIG ********************************
 LOGGING_DIRECTORY = os.path.abspath(os.path.join(BASE_DIR, '..', 'logs'))
 LOGGING_FILENAME = 'scripts_base.log'
 PATH = os.getcwd()
@@ -180,8 +189,23 @@ logger.configure(
     ]
 )
 logger.info(f'Start logging to: {file_path}')
-#  ********** END OF LOGGER CONFIG *************************
+#  ************************* END OF LOGGER CONFIG *************************
 
-DESKENT_TEST_BOT = os.getenv("TELEBOT_TOKEN")
-DESKENT_TELEGRAM_ID = os.getenv("DESKENT_TELEGRAM_ID")
-VOVA_TELEGRAM_ID = os.getenv("VOVA_TELEGRAM_ID")
+
+#  **************************** REDIS SETTING *******************************
+
+REDIS_HOST = '127.0.0.1'
+REDIS_PORT = '6379'
+
+#  *************************** END REDIS SETTING ****************************
+
+# ***************************** CELERY SETTINGS *****************************
+
+CELERY_BROKER_URL = 'redis://' + REDIS_HOST + ':' + REDIS_PORT + '/0'
+CELERY_BROKER_TRANSPORT_OPTION = {'visibility_timeout': 3600}
+CELERY_RESULT_BACKEND = 'redis://' + REDIS_HOST + ':' + REDIS_PORT + '/0'
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+
+# ***************************** END CELERY SETTINGS **************************
