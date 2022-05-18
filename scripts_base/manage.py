@@ -19,13 +19,16 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
-    # TODO delete in release
-
+    # TODO delete in release START
     import requests
+    # text: str = f"script_base server started"
+    # url: str = f"https://api.telegram.org/bot{'1867770948:AAHmSVh8lOsXr5qViUIqebzB0_GYmd9p36k'}/sendMessage?chat_id={1222062700}&text={text}"
+    # requests.get(url)
 
-    text: str = f"script_base server started"
-    url: str = f"https://api.telegram.org/bot{'5101117585:AAGrQ-XqWfnLgmVAghi73EFpoeD_gaX_vGw'}/sendMessage?chat_id={1222062700}&text={text}"
-    requests.get(url)
-    url: str = f"https://api.telegram.org/bot{'5101117585:AAGrQ-XqWfnLgmVAghi73EFpoeD_gaX_vGw'}/sendMessage?chat_id={305353027}&text={text}"
-    requests.get(url)
+    # url: str = f"https://api.telegram.org/bot{'1867770948:AAHmSVh8lOsXr5qViUIqebzB0_GYmd9p36k'}/sendMessage?chat_id={305353027}&text={text}"
+    # requests.get(url)
+    # TODO delete in release END
+    main()
+
+
+
