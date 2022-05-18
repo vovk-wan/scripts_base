@@ -8,8 +8,7 @@ from app_scripts.models import LicenseStatus, LicenseKey
 
 from services.classes.dataclass import DataStructure
 from config import logger
-from scripts_base.settings import DESKENT_TELEGRAM_ID, DESKENT_TEST_BOT as TEST_BOT
-
+from scripts_base.settings import DESKENT_TELEGRAM_ID, TELEBOT_TOKEN
 
 class LicenseChecker:
 
@@ -73,7 +72,7 @@ class LicenseChecker:
 
         keys = self._get_keyboard(license_status_id)
         text: str = f"Пришел запрос с вашим ключом {self.license_key}. Если его отправили вы - нажмите Да, иначе - Нет."
-        url: str = f"https://api.telegram.org/bot{TEST_BOT}/sendMessage?chat_id={telegram_id}&text={text}&reply_markup={keys}"
+        url: str = f"https://api.telegram.org/bot{TELEBOT_TOKEN}/sendMessage?chat_id={telegram_id}&text={text}&reply_markup={keys}"
         response = requests.get(url)
         logger.debug(f"\nButtons sent."
                      f"\n\tAswer code: {response.status_code}"

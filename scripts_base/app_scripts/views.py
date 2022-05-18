@@ -10,12 +10,14 @@ from app_scripts.models import LicenseKey, Client, Product, Status, LicenseStatu
 # from app_scripts.scripts import BASE
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+from scripts_base.settings import SECRET_KEY
 from services.service_license import LicenseChecker
 from services.scripts.secondary_server import SecondaryManager
 from services.classes.dataclass import DataStructure
 
 from config import logger
 
+from services.scripts.celery_test_task import my_task
 
 @method_decorator(csrf_exempt, name='dispatch')
 class BaseView(View):
@@ -155,8 +157,8 @@ class AddLicenseKeyView(View):
     def post(self, request, *args, **kwargs):
         result = DataStructure()
         token = request.headers.get('token')
-        logger.info(f'{self.__class__.__qualname__}, token: {token}')
-        if not token == 'neyropcycoendocrinoimmunologia':
+        if not token == SECRET_KEY:
+            logger.info(f'{self.__class__.__qualname__}, token: {token}')
             result.status = 401
             result.message = 'Access is denied'
             return JsonResponse(result.as_dict(), status=401)
@@ -217,9 +219,9 @@ class AddProductView(View):
     def post(self, request, *args, **kwargs):
         result: DataStructure = DataStructure()
         token = request.headers.get('token')
-        logger.info(f'{self.__class__.__qualname__} token: {token}')
         # TODO снести секрет в ENV
-        if not token == 'neyropcycoendocrinoimmunologia':
+        if not token == SECRET_KEY:
+            logger.info(f'{self.__class__.__qualname__} token: {token}')
             result.status = 401
             result.message = 'Access is denied'
             return JsonResponse(result.as_dict(), status=401)
@@ -259,8 +261,8 @@ class GetAllProductsView(View):
     def post(self, request, *args, **kwargs):
         result = DataStructure()
         token = request.headers.get('token')
-        logger.info(f'{self.__class__.__qualname__} token: {token}')
-        if not token == 'neyropcycoendocrinoimmunologia':
+        if not token == SECRET_KEY:
+            logger.info(f'{self.__class__.__qualname__} token: {token}')
             result.status = 401
             result.message = 'Access is denied'
             return JsonResponse(result.as_dict(), status=result.status)
@@ -291,8 +293,8 @@ class ConfirmLicense(View):
     def post(self, request, *args, **kwargs):
         result = DataStructure()
         token = request.headers.get('token')
-        logger.info(f'{self.__class__.__qualname__} token: {token}')
-        if not token == 'neyropcycoendocrinoimmunologia':
+        if not token == SECRET_KEY:
+            logger.info(f'{self.__class__.__qualname__} token: {token}')
             result.status = 401
             result.message = 'Access is denied'
             return JsonResponse(result.as_dict(), status=401)
@@ -326,8 +328,8 @@ class NotConfirmLicense(View):
     def post(self, request, *args, **kwargs):
         result: DataStructure = DataStructure()
         token = request.headers.get('token')
-        logger.info(f'{self.__class__.__qualname__} token: {token}')
-        if not token == 'neyropcycoendocrinoimmunologia':
+        if not token == SECRET_KEY:
+            logger.info(f'{self.__class__.__qualname__} token: {token}')
             result.status = 401
             result.message = 'Access is denied'
             return JsonResponse(result.as_dict(), status=result.status)
@@ -353,8 +355,8 @@ class DeleteProductView(View):
     def post(self, request, *args, **kwargs):
         result: DataStructure = DataStructure()
         token = request.headers.get('token')
-        logger.info(f'{self.__class__.__qualname__} token: {token}')
-        if not token == 'neyropcycoendocrinoimmunologia':
+        if not token == SECRET_KEY:
+            logger.info(f'{self.__class__.__qualname__} token: {token}')
             result.status = 401
             result.message = 'Access is denied'
             return JsonResponse(result.as_dict(), status=401)
@@ -374,3 +376,20 @@ class DeleteProductView(View):
         result.message = '' if deleted else 'deletion error '
         result.data = {'deleted': deleted}
         return JsonResponse(result.as_dict(), status=result.status)
+
+
+#  ********************** TEST CELERY *******************************
+
+@method_decorator(csrf_exempt, name='dispatch')
+class TestCeleryView(View):
+    """отсылать не больше 16 -17 в инт, иначе ждать упаришся к примеру 17 примерно на минуту"""
+    def post(self, request, *args, **kwargs):
+        request_data = request.body.decode('utf-8')
+        data = json.loads(request_data)
+        value_str = data.get('value_str')
+        value_int = data.get('value_int')
+        my_task.delay(value_str, value_int)
+        return JsonResponse({'time': datetime.datetime.now(), 'value_int': value_int}, status=200)
+
+
+#  ********************** END TEST CELERY ****************************
