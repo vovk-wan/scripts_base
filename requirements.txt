@@ -5,3 +5,5 @@ python-dotenv==0.20.0
 aiohttp==3.8.1
 requests~=2.27.1
 celery~=5.2.6
+aioscheduler_deskent==0.0.5
+datastructurepack-deskent==1.1
