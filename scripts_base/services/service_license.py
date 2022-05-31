@@ -10,6 +10,7 @@ from services.classes.dataclass import DataStructure
 from config import logger
 from scripts_base.settings import DESKENT_TELEGRAM_ID, TELEBOT_TOKEN
 
+
 class LicenseChecker:
 
     def __init__(self, license_key: str):
