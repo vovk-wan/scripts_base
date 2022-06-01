@@ -23,12 +23,12 @@ class Client(models.Model):
         null=True,
         default=None,
         verbose_name=_('status user'),
-        on_delete=models.CASCADE
+        on_delete=models.SET_NULL
     )
     # пользователи чата доступ ко всем серверам
     chat_user = models.BooleanField(default=False, verbose_name=_('Chat user'))
     expiration_date = models.DateTimeField(blank=False, verbose_name=_('Expiration date'))
-    description = models.TextField(default="", max_length='1500', verbose_name=_('Description'))
+    description = models.TextField(default="", max_length=1500, verbose_name=_('Description'))
 
     class Meta:
         db_table = 'clients'
