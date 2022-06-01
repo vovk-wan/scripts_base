@@ -1,6 +1,10 @@
 import datetime
 import json
 
+import django.conf
+import redis
+from celery.bin.control import inspect as celery_inspect
+from scripts_base.celery import app
 from django.forms import model_to_dict
 from django.views import View
 # from django.views.generic.detail import SingleObjectMixin
@@ -12,8 +16,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from scripts_base.settings import SECRET_KEY
 from services.service_license import LicenseChecker
-from services.scripts.secondary_server import SecondaryManager
-from services.classes.dataclass import DataStructure
+from services.scripts.secondary_server import SecondaryManager, main
+from datastructurepack import DataStructure
 
 from config import logger
 
@@ -62,18 +66,6 @@ class CheckLicenseView(View):
 
         return JsonResponse(result_data, status=result_data.get('status'))
 
-        # response = request.body.decode('utf-8')
-        # try:
-        #     data = json.loads(response)
-        # except (AttributeError, json.decoder.JSONDecodeError) as err:
-        #     logging.info(err)
-        #     return Http404'Error decode', 400
-        # secret = data.get('secret')
-        # lic = License.objects.get(secret=secret)
-        # if lic:
-        #     return 'ok', 205
-        # return 'Error decode', 400
-
 
 class RegistrationView(View):
     def post(self, request, *args, **kwargs):
@@ -120,36 +112,17 @@ class LicenseApproveView(View):
         result.status = 401
         result.success = False
         license_key_secret = data.get('license_key')
-        license_key = LicenseKey.objects.filter(license_key=license_key_secret).first()
-        check_status_id = data.get('check_status_id')
+        license_key: LicenseKey = LicenseKey.objects.filter(license_key=license_key_secret).first()
+        check_status_id: int = data.get('check_status_id')
         license_status: LicenseStatus = LicenseStatus.objects.filter(licensekey=license_key).filter(id=check_status_id).first()
         if license_status:
             # TODO присылать данные result_data?
             result.success = True if license_status.status == 1 else False
             result.status = 200 if license_status.status == 1 else 401
-            result.message = '' if license_status.status == 1 else 'Access is denied'
+            result.message = '' if license_status.status == 1 else 'Access denied'
         logger.info(f"{self.__class__.__qualname__}, Result: {result}")
 
         return JsonResponse(result.as_dict(), status=result.status)
-
-
-@method_decorator(csrf_exempt, name='dispatch')
-class SecondaryMarketView(View):
-    def post(self, request, *args, **kwargs):
-        request_data = request.body.decode('utf-8')
-        logger.info(f'{self.__class__.__qualname__}, before json request_data: {request_data}')
-        try:
-            data = json.loads(request_data)
-        except (AttributeError, json.decoder.JSONDecodeError) as err:
-            logger.info(f'{self.__class__.__qualname__}, exception: {err}')
-            return JsonResponse({'error': 'error'}, status=401)
-        logger.info(f'{self.__class__.__qualname__}, start script')
-        result_data: dict = SecondaryManager(**data).main()
-        logger.info(f'{self.__class__.__qualname__}, Result_data: {result_data}')
-
-        if result_data.get("success"):
-            return JsonResponse(result_data, status=200)
-        return JsonResponse(result_data, status=401)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -378,7 +351,65 @@ class DeleteProductView(View):
         return JsonResponse(result.as_dict(), status=result.status)
 
 
+#  ********************** Secondary Market  *******************************
+
+@method_decorator(csrf_exempt, name='dispatch')
+class SecondaryMarketResponseView(View):
+    def post(self, request, *args, **kwargs):
+        result = DataStructure()
+        request_data = request.body.decode('utf-8')
+        logger.info(f'{self.__class__.__qualname__}, before json request_data: {request_data}')
+        try:
+            data = json.loads(request_data)
+        except (AttributeError, json.decoder.JSONDecodeError) as err:
+            logger.error(f'{self.__class__.__qualname__}, exception: {err}')
+            result.status = 400
+            result.message = str(err)
+            logger.info(f'{self.__class__.__qualname__}, exception: {err}')
+            return JsonResponse(result.as_dict(), status=result.status)
+
+        logger.info(f'{self.__class__.__qualname__}, start script')
+
+        result_data = main.delay(**data)
+        logger.info(f'{self.__class__.__qualname__}, Result_data: {result_data.id}')
+
+        result.success = True
+        result.status = 200
+        result.data = {'request_id': result_data.id}
+        return JsonResponse(result.as_dict(), status=200)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class SecondaryMarketResultsView(View):
+    """Попробуем получить информацию о процессе"""
+    def post(self, request, *args, **kwargs):
+        result = DataStructure()
+        request_data = request.body.decode('utf-8')
+        try:
+            data = json.loads(request_data)
+        except (AttributeError, json.decoder.JSONDecodeError) as err:
+            logger.error(f'{self.__class__.__qualname__}, exception: {err}')
+            result.status = 400
+            result.message = str(err)
+            return JsonResponse(result.as_dict(), status=result.status)
+
+        request_id = data.get('request_id')
+
+        task = app.AsyncResult(request_id)
+
+        if task.ready():
+            answer = DataStructure()
+            answer.status = 200
+            answer.success = True
+            answer.data = task.get()
+            return JsonResponse(answer.as_dict(), status=200)
+        return JsonResponse({'value': 'wait'}, status=204)
+
+#  ********************** Secondary Market END  *******************************
+
+
 #  ********************** TEST CELERY *******************************
+
 
 @method_decorator(csrf_exempt, name='dispatch')
 class TestCeleryView(View):
@@ -388,8 +419,9 @@ class TestCeleryView(View):
         data = json.loads(request_data)
         value_str = data.get('value_str')
         value_int = data.get('value_int')
-        my_task.delay(value_str, value_int)
-        return JsonResponse({'time': datetime.datetime.now(), 'value_int': value_int}, status=200)
-
+        answer = my_task.delay(value_str, value_int)
+        # TODO  вернуть значение по ключу request_id в
+        #  дате Dataclass по которому можно будет найти результат
+        return JsonResponse({'time': datetime.datetime.now(), 'value_int': value_int, 'answer': answer.id}, status=200)
 
 #  ********************** END TEST CELERY ****************************

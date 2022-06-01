@@ -15,7 +15,7 @@ from pathlib import Path
 import os
 
 from dotenv import load_dotenv
-from loguru import logger
+from myloguru.my_loguru import get_logger
 
 
 load_dotenv()
@@ -31,6 +31,9 @@ SECRET_KEY = 'django-insecure-#rt(teob%p+2@4xq#_*83g9j=lzg=s4jq)%6*47_+likk@dpt4
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+
+level = 1 if DEBUG else 20
+logger = get_logger(level)
 
 ALLOWED_HOSTS = ['127.0.0.1', '51.250.5.60']
 
@@ -168,44 +171,46 @@ SECRET_TOKEN = os.getenv('SECRET_TOKEN')
 #  *********************** END GET TOKENS *********************************
 
 #  ************************ LOGGER CONFIG ********************************
-LOGGING_DIRECTORY = os.path.abspath(os.path.join(BASE_DIR, '..', 'logs'))
-LOGGING_FILENAME = 'scripts_base.log'
-PATH = os.getcwd()
-if not os.path.exists('./logs'):
-    os.mkdir("./logs")
-today = datetime.datetime.today().strftime("%Y-%m-%d")
-file_path = os.path.join(PATH, LOGGING_DIRECTORY, today, LOGGING_FILENAME)
-logger.remove()
-LOG_LEVEL: str = "WARNING"
-DEBUG_LEVEL: str = "DEBUG"
-logger.add(sink=file_path, enqueue=True, level=LOG_LEVEL, rotation="50 MB")
-logger.add(sink=sys.stdout, level=DEBUG_LEVEL)
-logger.configure(
-    levels=[
-        dict(name="DEBUG", color="<white>"),
-        dict(name="INFO", color="<fg #afffff>"),
-        dict(name="WARNING", color="<light-yellow>"),
-        dict(name="ERROR", color="<red>"),
-    ]
-)
-logger.info(f'Start logging to: {file_path}')
+# LOGGING_DIRECTORY = os.path.abspath(os.path.join(BASE_DIR, '..', 'logs'))
+# LOGGING_FILENAME = 'scripts_base.log'
+# PATH = os.getcwd()
+# if not os.path.exists('./logs'):
+#     os.mkdir("./logs")
+# today = datetime.datetime.today().strftime("%Y-%m-%d")
+# file_path = os.path.join(PATH, LOGGING_DIRECTORY, today, LOGGING_FILENAME)
+# logger.remove()
+# LOG_LEVEL: str = "WARNING"
+# DEBUG_LEVEL: str = "DEBUG"
+# logger.add(sink=file_path, enqueue=True, level=LOG_LEVEL, rotation="50 MB")
+# logger.add(sink=sys.stdout, level=DEBUG_LEVEL)
+# logger.configure(
+#     levels=[
+#         dict(name="DEBUG", color="<white>"),
+#         dict(name="INFO", color="<fg #afffff>"),
+#         dict(name="WARNING", color="<light-yellow>"),
+#         dict(name="ERROR", color="<red>"),
+#     ]
+# )
+# logger.info(f'Start logging to: {file_path}')
 #  ************************* END OF LOGGER CONFIG *************************
 
 
 #  **************************** REDIS SETTING *******************************
 
-REDIS_HOST = '127.0.0.1'
-REDIS_PORT = '6379'
+REDIS_HOST = os.getenv("REDIS_HOST", '127.0.0.1')
+REDIS_PORT = os.getenv("REDIS_PORT", '6379')
 
 #  *************************** END REDIS SETTING ****************************
 
 # ***************************** CELERY SETTINGS *****************************
-
-CELERY_BROKER_URL = 'redis://' + REDIS_HOST + ':' + REDIS_PORT + '/0'
+REDIS = f'redis://{REDIS_HOST}:{REDIS_PORT}'
+BROKER_URL = REDIS
+CELERY_BROKER_URL = REDIS + '/0'
 CELERY_BROKER_TRANSPORT_OPTION = {'visibility_timeout': 3600}
 CELERY_RESULT_BACKEND = 'redis://' + REDIS_HOST + ':' + REDIS_PORT + '/0'
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 
+# CELERY_TASK_STORAGE = {} # TODO  возможно использовать как контроль задач
 # ***************************** END CELERY SETTINGS **************************

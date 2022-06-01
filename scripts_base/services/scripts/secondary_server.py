@@ -9,8 +9,10 @@ from typing import List
 
 import aiohttp
 
+from scripts_base.celery import app
+
 from config import logger
-from services.classes.dataclass import DataStructure
+from datastructurepack import DataStructure
 
 
 try:
@@ -200,6 +202,11 @@ class SecondaryServer:
         return success
 
 
+@app.task
+def main(**kwargs) -> dict:
+    return asyncio.run(SecondaryManager(**kwargs)._main())
+
+
 @dataclass
 class SecondaryManager:
     headers: dict
@@ -229,13 +236,13 @@ class SecondaryManager:
 
         workers: List[SecondaryServer] = await self._get_workers()
         self.workers: List[SecondaryServer] = await self._make_workers_data(workers)
-        logger.debug(f"Total workers ready: {len(self.workers)}")
         if not self.workers:
             logger.error("No workers")
             result_data.success = True
             result_data.message = "No workers"
             result_data.data = {'results': []}
             return result_data.as_dict()
+        logger.debug(f"Total workers ready: {len(self.workers)}")
         logger.info(f"Scheduler starts. Tasks will be ran at: [{self.sale_time - get_current_unix_timestamp()}] seconds")
         results: list[str] = await Scheduler().add_job(self._do_purchase, self.sale_time - 1).run()
         result_data.success = True
