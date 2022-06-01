@@ -1,7 +1,12 @@
 Django==4.0.4
-loguru==0.6.0
 psycopg2==2.9.3
 python-dotenv==0.20.0
 aiohttp==3.8.1
-requests~=2.27.1
-celery~=5.2.6
+requests==2.27.1
+celery==5.2.6
+redis==4.3.1
+flower==1.0.0
+
+myloguru-deskent
+aioscheduler-deskent
+datastructurepack-deskent

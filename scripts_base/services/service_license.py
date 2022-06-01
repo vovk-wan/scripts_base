@@ -6,9 +6,8 @@ import requests
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from app_scripts.models import LicenseStatus, LicenseKey
 
-from services.classes.dataclass import DataStructure
-from config import logger
-from scripts_base.settings import DESKENT_TELEGRAM_ID, DESKENT_TEST_BOT as TEST_BOT
+from datastructurepack import DataStructure
+from scripts_base.settings import DESKENT_TELEGRAM_ID, TELEBOT_TOKEN, logger
 
 
 class LicenseChecker:
@@ -50,7 +49,7 @@ class LicenseChecker:
         self.dataclass.message = "License checking in progress"
         # self.dataclass.work_key = work_key
         self.dataclass.data = {
-            'check_status_id': license_status.id, 'check_status': license_status.status
+            'check_status_id': license_status.id, 'status': license_status.status
         }
 
         return self.dataclass.as_dict()
@@ -73,7 +72,7 @@ class LicenseChecker:
 
         keys = self._get_keyboard(license_status_id)
         text: str = f"Пришел запрос с вашим ключом {self.license_key}. Если его отправили вы - нажмите Да, иначе - Нет."
-        url: str = f"https://api.telegram.org/bot{TEST_BOT}/sendMessage?chat_id={telegram_id}&text={text}&reply_markup={keys}"
+        url: str = f"https://api.telegram.org/bot{TELEBOT_TOKEN}/sendMessage?chat_id={telegram_id}&text={text}&reply_markup={keys}"
         response = requests.get(url)
         logger.debug(f"\nButtons sent."
                      f"\n\tAswer code: {response.status_code}"
