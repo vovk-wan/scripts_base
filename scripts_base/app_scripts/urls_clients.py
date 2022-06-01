@@ -1,5 +1,5 @@
 from django.urls import path, include
-from app_scripts.views import BaseView, CheckLicenseView, MyIpView, SecondaryMarketView, LicenseApproveView
+from app_scripts.views import CheckLicenseView
 
 
 urlpatterns = [
