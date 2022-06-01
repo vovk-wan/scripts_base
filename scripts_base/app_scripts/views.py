@@ -14,7 +14,7 @@ from app_scripts.models import LicenseKey, Client, Product, Status, LicenseStatu
 # from app_scripts.scripts import BASE
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
-from scripts_base.settings import SECRET_KEY
+from scripts_base.settings import DB_KEY_VALIDATION
 from services.service_license import LicenseChecker
 from services.scripts.secondary_server import SecondaryManager, main
 from datastructurepack import DataStructure
@@ -130,7 +130,7 @@ class AddLicenseKeyView(View):
     def post(self, request, *args, **kwargs):
         result = DataStructure()
         token = request.headers.get('token')
-        if not token == SECRET_KEY:
+        if not token == DB_KEY_VALIDATION:
             logger.info(f'{self.__class__.__qualname__}, token: {token}')
             result.status = 401
             result.message = 'Access is denied'
@@ -193,7 +193,7 @@ class AddProductView(View):
         result: DataStructure = DataStructure()
         token = request.headers.get('token')
         # TODO снести секрет в ENV
-        if not token == SECRET_KEY:
+        if not token == DB_KEY_VALIDATION:
             logger.info(f'{self.__class__.__qualname__} token: {token}')
             result.status = 401
             result.message = 'Access is denied'
@@ -234,7 +234,7 @@ class GetAllProductsView(View):
     def post(self, request, *args, **kwargs):
         result = DataStructure()
         token = request.headers.get('token')
-        if not token == SECRET_KEY:
+        if not token == DB_KEY_VALIDATION:
             logger.info(f'{self.__class__.__qualname__} token: {token}')
             result.status = 401
             result.message = 'Access is denied'
@@ -266,7 +266,7 @@ class ConfirmLicense(View):
     def post(self, request, *args, **kwargs):
         result = DataStructure()
         token = request.headers.get('token')
-        if not token == SECRET_KEY:
+        if not token == DB_KEY_VALIDATION:
             logger.info(f'{self.__class__.__qualname__} token: {token}')
             result.status = 401
             result.message = 'Access is denied'
@@ -301,7 +301,7 @@ class NotConfirmLicense(View):
     def post(self, request, *args, **kwargs):
         result: DataStructure = DataStructure()
         token = request.headers.get('token')
-        if not token == SECRET_KEY:
+        if not token == DB_KEY_VALIDATION:
             logger.info(f'{self.__class__.__qualname__} token: {token}')
             result.status = 401
             result.message = 'Access is denied'
@@ -328,7 +328,7 @@ class DeleteProductView(View):
     def post(self, request, *args, **kwargs):
         result: DataStructure = DataStructure()
         token = request.headers.get('token')
-        if not token == SECRET_KEY:
+        if not token == DB_KEY_VALIDATION:
             logger.info(f'{self.__class__.__qualname__} token: {token}')
             result.status = 401
             result.message = 'Access is denied'
