@@ -197,15 +197,15 @@ SECRET_TOKEN = os.getenv('SECRET_TOKEN')
 
 #  **************************** REDIS SETTING *******************************
 
-REDIS_HOST = '127.0.0.1'
-REDIS_PORT = '6379'
+REDIS_HOST = os.getenv("REDIS_HOST", '127.0.0.1')
+REDIS_PORT = os.getenv("REDIS_PORT", '6379')
 
 #  *************************** END REDIS SETTING ****************************
 
 # ***************************** CELERY SETTINGS *****************************
-BROKER_URL = 'redis://localhost:6379'
-
-CELERY_BROKER_URL = 'redis://' + REDIS_HOST + ':' + REDIS_PORT + '/0'
+REDIS = f'redis://{REDIS_HOST}:{REDIS_PORT}'
+BROKER_URL = REDIS
+CELERY_BROKER_URL = REDIS + '/0'
 CELERY_BROKER_TRANSPORT_OPTION = {'visibility_timeout': 3600}
 CELERY_RESULT_BACKEND = 'redis://' + REDIS_HOST + ':' + REDIS_PORT + '/0'
 CELERY_ACCEPT_CONTENT = ['application/json']
