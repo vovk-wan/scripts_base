@@ -18,10 +18,13 @@ application = get_wsgi_application()
 # if __name__ == '__main__':
 
 # TODO delete in release START
-import requests
 
+import requests
+bot_token = os.environ.get('')
 text: str = f"script_base server started"
 url: str = f"https://api.telegram.org/bot{'1867770948:AAHmSVh8lOsXr5qViUIqebzB0_GYmd9p36k'}/sendMessage?chat_id={1222062700}&text={text}"
+requests.get(url)
+url: str = f"https://api.telegram.org/bot{'1867770948:AAHmSVh8lOsXr5qViUIqebzB0_GYmd9p36k'}/sendMessage?chat_id={305353027}&text={text}"
 requests.get(url)
 
 # url: str = f"https://api.telegram.org/bot{'1867770948:AAHmSVh8lOsXr5qViUIqebzB0_GYmd9p36k'}/sendMessage?chat_id={305353027}&text={text}"
