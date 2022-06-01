@@ -7,8 +7,7 @@ from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from app_scripts.models import LicenseStatus, LicenseKey
 
 from datastructurepack import DataStructure
-from config import logger
-from scripts_base.settings import DESKENT_TELEGRAM_ID, TELEBOT_TOKEN
+from scripts_base.settings import DESKENT_TELEGRAM_ID, TELEBOT_TOKEN, logger
 
 
 class LicenseChecker:
