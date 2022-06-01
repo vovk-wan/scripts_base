@@ -166,7 +166,7 @@ DESKENT_TEST_BOT = os.getenv("TELEBOT_TOKEN")
 DESKENT_TELEGRAM_ID = os.getenv("DESKENT_TELEGRAM_ID")
 VOVA_TELEGRAM_ID = os.getenv("VOVA_TELEGRAM_ID")
 TELEBOT_TOKEN = os.getenv("TELEBOT_TOKEN")
-SECRET_TOKEN = os.getenv('SECRET_TOKEN')
+DB_KEY_VALIDATION = os.getenv('DB_KEY_VALIDATION')
 
 #  *********************** END GET TOKENS *********************************
 
