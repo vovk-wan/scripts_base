@@ -6,7 +6,7 @@ import requests
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from app_scripts.models import LicenseStatus, LicenseKey
 
-from services.classes.dataclass import DataStructure
+from datastructurepack import DataStructure
 from config import logger
 from scripts_base.settings import DESKENT_TELEGRAM_ID, TELEBOT_TOKEN
 
@@ -50,7 +50,7 @@ class LicenseChecker:
         self.dataclass.message = "License checking in progress"
         # self.dataclass.work_key = work_key
         self.dataclass.data = {
-            'check_status_id': license_status.id, 'check_status': license_status.status
+            'check_status_id': license_status.id, 'status': license_status.status
         }
 
         return self.dataclass.as_dict()
