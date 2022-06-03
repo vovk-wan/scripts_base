@@ -401,7 +401,7 @@ class SecondaryMarketResultsView(View):
             answer.status = 200
             answer.success = True
             task_data = task.get()
-            answer.data = task_data if not task_data.get('result') is None else {'result': []}
+            answer.data = task_data if not task_data.get('results') is None else {'results': []}
             return JsonResponse(answer.as_dict(), status=200)
         return JsonResponse({'value': 'wait'}, status=204)
 
