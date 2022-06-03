@@ -290,6 +290,7 @@ class SecondaryManager:
                 responses = await asyncio.gather(*tasks)
                 logger.info(f"Total time for requests: {datetime.datetime.utcnow().replace(tzinfo=None) - t0}")
                 results: list[str] = [await response.text() for response in responses]
+                logger.info(results)
             except Exception as err:
                 logger.error(err)
 
