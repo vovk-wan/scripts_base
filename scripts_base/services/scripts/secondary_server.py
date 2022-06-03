@@ -12,7 +12,6 @@ import aiohttp
 from scripts_base.celery import app
 
 from config import logger
-from datastructurepack import DataStructure
 
 
 try:
@@ -272,7 +271,7 @@ class SecondaryManager:
     @logger.catch
     async def _do_purchase(self: 'SecondaryManager') -> list[str]:
         """Отправка запросов, получение данных"""
-
+        results = []
         logger.info("Collecting requests. It will take a few seconds...")
         logger.info(f"Purchase time: {datetime.datetime.fromtimestamp(self.sale_time)}"
                     f"\tCurrent time: {datetime.datetime.utcnow().replace(tzinfo=None)}")
@@ -287,10 +286,12 @@ class SecondaryManager:
             logger.info(
                 f"Requests started at: "
                 f"{datetime.datetime.utcnow().replace(tzinfo=None).strftime('%Y-%m-%d %H:%M:%S')}")
-            responses = await asyncio.gather(*tasks)
-            logger.info(
-                f"Total time for requests: {datetime.datetime.utcnow().replace(tzinfo=None) - t0}")
-            results: list[str] = [await response.text() for response in responses]
+            try:
+                responses = await asyncio.gather(*tasks)
+                logger.info(f"Total time for requests: {datetime.datetime.utcnow().replace(tzinfo=None) - t0}")
+                results: list[str] = [await response.text() for response in responses]
+            except Exception as err:
+                logger.error(err)
 
         return results
 
