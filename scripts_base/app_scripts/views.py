@@ -401,7 +401,8 @@ class SecondaryMarketResultsView(View):
             answer = DataStructure()
             answer.status = 200
             answer.success = True
-            answer.data = task.get()
+            task_data = task.get()
+            answer.data = task_data if task_data else []
             return JsonResponse(answer.as_dict(), status=200)
         return JsonResponse({'value': 'wait'}, status=204)
 
