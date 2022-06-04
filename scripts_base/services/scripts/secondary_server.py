@@ -213,9 +213,10 @@ class SecondaryManager:
     requests_count: int
     proxy_login: str
     proxy_password: str
-    sale_time: datetime
+    sale_time: str
     currency: str
     workers: List[SecondaryServer] = None
+    sale_datetime: datetime = None
 
     @logger.catch
     def main(self: 'SecondaryManager') -> dict:
@@ -223,10 +224,10 @@ class SecondaryManager:
 
     @logger.catch
     async def _main(self: 'SecondaryManager') -> dict:
-
-        logger.info(f"\n\t\tSale time:\t{self.sale_time}"
+        self.sale_datetime: datetime = datetime.datetime.fromisoformat(self.sale_time)
+        logger.info(f"\n\t\tSale time:\t{self.sale_datetime}"
                     f"\n\t\tCurrent time:\t{datetime.datetime.utcnow()}"
-                    f"\n\t\tDelta time:\t{(self.sale_time - datetime.datetime.utcnow()).seconds}"
+                    f"\n\t\tDelta time:\t{(self.sale_datetime - datetime.datetime.utcnow()).seconds}"
         )
 
         result_data: 'DataStructure' = DataStructure()
@@ -245,9 +246,9 @@ class SecondaryManager:
             logger.error("No workers")
             result_data.success = True
             result_data.data = {'results': []}
-        start_time: int = (self.sale_time - datetime.datetime.utcnow()).seconds
+        start_time: int = (self.sale_datetime - datetime.datetime.utcnow()).seconds
         logger.info(f"Scheduler starts. Tasks will be ran at: [{start_time}] seconds")
-        results: list[str] = await Scheduler().add_job(self._do_purchase, self.sale_time).run()
+        results: list[str] = await Scheduler().add_job(self._do_purchase, self.sale_datetime).run()
         if results:
             logger.info(f"Results: {len(results)}")
         result_data.success = True
@@ -279,7 +280,7 @@ class SecondaryManager:
         """Отправка запросов, получение данных"""
 
         logger.info("Collecting requests. It will take a few seconds...")
-        logger.info(f"Purchase time: {self.sale_time}"
+        logger.info(f"Purchase time: {self.sale_datetime}"
                     f"\tCurrent time: {datetime.datetime.utcnow().replace(tzinfo=None)}")
         async with aiohttp.ClientSession(headers=self.headers) as session:
             tasks = []
