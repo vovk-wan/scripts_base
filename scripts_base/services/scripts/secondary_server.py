@@ -243,7 +243,6 @@ class SecondaryManager:
             logger.error(text)
             return []
 
-
         workers: List[SecondaryServer] = await self._get_workers()
         self.workers: List[SecondaryServer] = await self._make_workers_data(workers)
         logger.debug(f"Total workers ready: {len(self.workers)}")
