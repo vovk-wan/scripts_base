@@ -12,7 +12,6 @@ import aiohttp
 from scripts_base.celery import app
 
 from config import logger
-from datastructurepack import DataStructure
 
 
 try:
@@ -214,41 +213,51 @@ class SecondaryManager:
     requests_count: int
     proxy_login: str
     proxy_password: str
-    sale_time: float
+    sale_time: str
     currency: str
     workers: List[SecondaryServer] = None
+    sale_datetime: datetime = None
 
     @logger.catch
     def main(self: 'SecondaryManager') -> dict:
         return asyncio.run(self._main())
 
     @logger.catch
-    async def _main(self: 'SecondaryManager') -> dict:
+    async def _main(self: 'SecondaryManager') -> list:
+        # TODO удалить после тестов
+        if self.product_data[0].get("test"):
+            return self.product_data
 
-        result_data: 'DataStructure' = DataStructure()
+        self.sale_datetime: datetime = datetime.datetime.fromisoformat(self.sale_time)
+        logger.info(f"\n\t\tSale time:\t{self.sale_datetime}"
+                    f"\n\t\tCurrent time:\t{datetime.datetime.utcnow()}"
+                    f"\n\t\tDelta time:\t{(self.sale_datetime - datetime.datetime.utcnow()).seconds}"
+        )
 
         if not self.product_data:
             text: str = "Not enough data"
             logger.error(text)
-            result_data.message = text
-            result_data.data = {'results': []}
-            return result_data.as_dict()
+            return []
+        if not isinstance(self.product_data, list):
+            text: str = "Product data must be list of dict (list[dict])"
+            logger.error(text)
+            return []
+
 
         workers: List[SecondaryServer] = await self._get_workers()
         self.workers: List[SecondaryServer] = await self._make_workers_data(workers)
+        logger.debug(f"Total workers ready: {len(self.workers)}")
         if not self.workers:
             logger.error("No workers")
-            result_data.success = True
-            result_data.message = "No workers"
-            result_data.data = {'results': []}
-            return result_data.as_dict()
-        logger.debug(f"Total workers ready: {len(self.workers)}")
-        logger.info(f"Scheduler starts. Tasks will be ran at: [{self.sale_time - get_current_unix_timestamp()}] seconds")
-        results: list[str] = await Scheduler().add_job(self._do_purchase, self.sale_time - 1).run()
-        result_data.success = True
-        result_data.data = {'results': results}
+            return []
+        start_time: int = (self.sale_datetime - datetime.datetime.utcnow()).seconds
+        logger.info(f"Scheduler starts. Tasks will be ran at: [{start_time}] seconds")
+        results: list[str] = await Scheduler().add_job(self._do_purchase, self.sale_datetime).run()
+        if not results:
+            return []
+        logger.info(f"Results: {len(results)}")
 
-        return result_data.as_dict()
+        return results
 
     @logger.catch
     async def _get_workers(self: 'SecondaryManager') -> list[SecondaryServer]:
@@ -274,7 +283,7 @@ class SecondaryManager:
         """Отправка запросов, получение данных"""
 
         logger.info("Collecting requests. It will take a few seconds...")
-        logger.info(f"Purchase time: {datetime.datetime.fromtimestamp(self.sale_time)}"
+        logger.info(f"Purchase time: {self.sale_datetime}"
                     f"\tCurrent time: {datetime.datetime.utcnow().replace(tzinfo=None)}")
         async with aiohttp.ClientSession(headers=self.headers) as session:
             tasks = []
@@ -293,7 +302,3 @@ class SecondaryManager:
             results: list[str] = [await response.text() for response in responses]
 
         return results
-
-
-def get_current_unix_timestamp() -> int:
-    return int(datetime.datetime.utcnow().replace(tzinfo=None).timestamp())

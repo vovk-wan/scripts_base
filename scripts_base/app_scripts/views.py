@@ -393,15 +393,16 @@ class SecondaryMarketResultsView(View):
             result.message = str(err)
             return JsonResponse(result.as_dict(), status=result.status)
 
-        request_id = data.get('request_id')
+        request_id: int = data.get('request_id')
 
         task = app.AsyncResult(request_id)
-
         if task.ready():
             answer = DataStructure()
             answer.status = 200
             answer.success = True
-            answer.data = task.get()
+            task_data = task.get()
+            logger.info(f'Task data: {task_data}')
+            answer.data = task_data
             return JsonResponse(answer.as_dict(), status=200)
         return JsonResponse({'value': 'wait'}, status=204)
 
