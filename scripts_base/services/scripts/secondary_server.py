@@ -234,6 +234,8 @@ class SecondaryManager:
             text: str = "Not enough data"
             logger.error(text)
             return []
+        if self.product_data[0].get("test"):
+            return self.product_data
 
         workers: List[SecondaryServer] = await self._get_workers()
         self.workers: List[SecondaryServer] = await self._make_workers_data(workers)
