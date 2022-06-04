@@ -224,6 +224,10 @@ class SecondaryManager:
 
     @logger.catch
     async def _main(self: 'SecondaryManager') -> list:
+        # TODO удалить после тестов
+        if self.product_data[0].get("test"):
+            return self.product_data
+
         self.sale_datetime: datetime = datetime.datetime.fromisoformat(self.sale_time)
         logger.info(f"\n\t\tSale time:\t{self.sale_datetime}"
                     f"\n\t\tCurrent time:\t{datetime.datetime.utcnow()}"
@@ -234,8 +238,11 @@ class SecondaryManager:
             text: str = "Not enough data"
             logger.error(text)
             return []
-        if self.product_data[0].get("test"):
-            return self.product_data
+        if not isinstance(self.product_data, list):
+            text: str = "Product data must be list of dict (list[dict])"
+            logger.error(text)
+            return []
+
 
         workers: List[SecondaryServer] = await self._get_workers()
         self.workers: List[SecondaryServer] = await self._make_workers_data(workers)
