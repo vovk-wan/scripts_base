@@ -246,6 +246,7 @@ class SecondaryManager:
             logger.error("No workers")
             result_data.success = True
             result_data.data = {'results': []}
+            return result_data.as_dict()
         start_time: int = (self.sale_datetime - datetime.datetime.utcnow()).seconds
         logger.info(f"Scheduler starts. Tasks will be ran at: [{start_time}] seconds")
         results: list[str] = await Scheduler().add_job(self._do_purchase, self.sale_datetime).run()
@@ -299,7 +300,3 @@ class SecondaryManager:
             results: list[str] = [await response.text() for response in responses]
 
         return results
-
-
-def get_current_unix_timestamp() -> int:
-    return int(datetime.datetime.utcnow().replace(tzinfo=None).timestamp())
