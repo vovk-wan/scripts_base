@@ -402,7 +402,7 @@ class SecondaryMarketResultsView(View):
             answer.success = True
             task_data = task.get()
             logger.info(f'Task data: {task_data}')
-            answer.data = task_data
+            answer.data = {'results': task_data} if task_data else {'results': []}
             return JsonResponse(answer.as_dict(), status=200)
         return JsonResponse({'value': 'wait'}, status=204)
 
