@@ -223,39 +223,32 @@ class SecondaryManager:
         return asyncio.run(self._main())
 
     @logger.catch
-    async def _main(self: 'SecondaryManager') -> dict:
+    async def _main(self: 'SecondaryManager') -> list:
         self.sale_datetime: datetime = datetime.datetime.fromisoformat(self.sale_time)
         logger.info(f"\n\t\tSale time:\t{self.sale_datetime}"
                     f"\n\t\tCurrent time:\t{datetime.datetime.utcnow()}"
                     f"\n\t\tDelta time:\t{(self.sale_datetime - datetime.datetime.utcnow()).seconds}"
         )
 
-        result_data: 'DataStructure' = DataStructure()
-
         if not self.product_data:
             text: str = "Not enough data"
             logger.error(text)
-            result_data.message = text
-            result_data.data = {'results': []}
-            return result_data.as_dict()
+            return []
 
         workers: List[SecondaryServer] = await self._get_workers()
         self.workers: List[SecondaryServer] = await self._make_workers_data(workers)
         logger.debug(f"Total workers ready: {len(self.workers)}")
         if not self.workers:
             logger.error("No workers")
-            result_data.success = True
-            result_data.data = {'results': []}
-            return result_data.as_dict()
+            return []
         start_time: int = (self.sale_datetime - datetime.datetime.utcnow()).seconds
         logger.info(f"Scheduler starts. Tasks will be ran at: [{start_time}] seconds")
         results: list[str] = await Scheduler().add_job(self._do_purchase, self.sale_datetime).run()
-        if results:
-            logger.info(f"Results: {len(results)}")
-        result_data.success = True
-        result_data.data = {'results': results}
+        if not results:
+            return []
+        logger.info(f"Results: {len(results)}")
 
-        return result_data.as_dict()
+        return results
 
     @logger.catch
     async def _get_workers(self: 'SecondaryManager') -> list[SecondaryServer]:
