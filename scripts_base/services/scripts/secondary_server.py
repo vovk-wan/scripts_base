@@ -225,6 +225,11 @@ class SecondaryManager:
     async def _main(self: 'SecondaryManager') -> dict:
 
         result_data: 'DataStructure' = DataStructure()
+        pru_time = datetime.datetime.fromtimestamp(self.sale_time)
+        cur_time = datetime.datetime.utcnow().replace(tzinfo=None)
+        logger.info(f"\n\t\tPurchase time: {pru_time}"
+                    f"\n\t\tCurrent time: {cur_time}"
+                    f"\n\t\tDelta time: {pru_time - cur_time}")
 
         if not self.product_data:
             text: str = "Not enough data"
