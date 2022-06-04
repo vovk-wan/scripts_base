@@ -213,7 +213,7 @@ class SecondaryManager:
     requests_count: int
     proxy_login: str
     proxy_password: str
-    sale_time: float
+    sale_time: datetime
     currency: str
     workers: List[SecondaryServer] = None
 
@@ -224,12 +224,12 @@ class SecondaryManager:
     @logger.catch
     async def _main(self: 'SecondaryManager') -> dict:
 
+        logger.info(f"\n\t\tSale time:\t{self.sale_time}"
+                    f"\n\t\tCurrent time:\t{datetime.datetime.utcnow()}"
+                    f"\n\t\tDelta time:\t{(self.sale_time - datetime.datetime.utcnow()).seconds}"
+        )
+
         result_data: 'DataStructure' = DataStructure()
-        pru_time = datetime.datetime.fromtimestamp(self.sale_time)
-        cur_time = datetime.datetime.utcnow().replace(tzinfo=None)
-        logger.info(f"\n\t\tPurchase time: {pru_time}"
-                    f"\n\t\tCurrent time: {cur_time}"
-                    f"\n\t\tDelta time: {pru_time - cur_time}")
 
         if not self.product_data:
             text: str = "Not enough data"
@@ -240,15 +240,16 @@ class SecondaryManager:
 
         workers: List[SecondaryServer] = await self._get_workers()
         self.workers: List[SecondaryServer] = await self._make_workers_data(workers)
+        logger.debug(f"Total workers ready: {len(self.workers)}")
         if not self.workers:
             logger.error("No workers")
             result_data.success = True
-            result_data.message = "No workers"
             result_data.data = {'results': []}
-            return result_data.as_dict()
-        logger.debug(f"Total workers ready: {len(self.workers)}")
-        logger.info(f"Scheduler starts. Tasks will be ran at: [{self.sale_time - get_current_unix_timestamp()}] seconds")
-        results: list[str] = await Scheduler().add_job(self._do_purchase, self.sale_time - 1).run()
+        start_time: int = (self.sale_time - datetime.datetime.utcnow()).seconds
+        logger.info(f"Scheduler starts. Tasks will be ran at: [{start_time}] seconds")
+        results: list[str] = await Scheduler().add_job(self._do_purchase, self.sale_time).run()
+        if results:
+            logger.info(f"Results: {len(results)}")
         result_data.success = True
         result_data.data = {'results': results}
 
@@ -276,9 +277,9 @@ class SecondaryManager:
     @logger.catch
     async def _do_purchase(self: 'SecondaryManager') -> list[str]:
         """Отправка запросов, получение данных"""
-        results = []
+
         logger.info("Collecting requests. It will take a few seconds...")
-        logger.info(f"Purchase time: {datetime.datetime.fromtimestamp(self.sale_time)}"
+        logger.info(f"Purchase time: {self.sale_time}"
                     f"\tCurrent time: {datetime.datetime.utcnow().replace(tzinfo=None)}")
         async with aiohttp.ClientSession(headers=self.headers) as session:
             tasks = []
@@ -291,13 +292,10 @@ class SecondaryManager:
             logger.info(
                 f"Requests started at: "
                 f"{datetime.datetime.utcnow().replace(tzinfo=None).strftime('%Y-%m-%d %H:%M:%S')}")
-            try:
-                responses = await asyncio.gather(*tasks)
-                logger.info(f"Total time for requests: {datetime.datetime.utcnow().replace(tzinfo=None) - t0}")
-                results: list[str] = [await response.text() for response in responses]
-                logger.info(results)
-            except Exception as err:
-                logger.error(err)
+            responses = await asyncio.gather(*tasks)
+            logger.info(
+                f"Total time for requests: {datetime.datetime.utcnow().replace(tzinfo=None) - t0}")
+            results: list[str] = [await response.text() for response in responses]
 
         return results
 
