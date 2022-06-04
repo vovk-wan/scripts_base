@@ -400,7 +400,9 @@ class SecondaryMarketResultsView(View):
             answer = DataStructure()
             answer.status = 200
             answer.success = True
-            answer.data = task.get()
+            task_data = task.get()
+            logger.info(f'Task data: {task_data}')
+            answer.data = task_data
             return JsonResponse(answer.as_dict(), status=200)
         return JsonResponse({'value': 'wait'}, status=204)
 
