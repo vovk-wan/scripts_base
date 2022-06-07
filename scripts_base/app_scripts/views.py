@@ -384,9 +384,9 @@ class SecondaryMarketResultsView(View):
     """Попробуем получить информацию о процессе"""
     def post(self, request, *args, **kwargs):
         result = DataStructure()
-        request_data = request.body.decode('utf-8')
+        request_data: str = request.body.decode('utf-8')
         try:
-            data = json.loads(request_data)
+            data: dict = json.loads(request_data)
         except (AttributeError, json.decoder.JSONDecodeError) as err:
             logger.error(f'{self.__class__.__qualname__}, exception: {err}')
             result.status = 400
@@ -400,7 +400,8 @@ class SecondaryMarketResultsView(View):
             answer = DataStructure()
             answer.status = 200
             answer.success = True
-            task_data = task.get()
+            task_data: list = task.get()
+            # TODO делать возврат ошибок
             logger.info(f'Task data: {task_data}')
             answer.data = {'results': task_data} if task_data else {'results': []}
             return JsonResponse(answer.as_dict(), status=200)
