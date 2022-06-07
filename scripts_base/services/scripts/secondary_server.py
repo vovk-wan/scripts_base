@@ -71,6 +71,7 @@ class SecondaryServer:
             "url": url,
             "data": json.dumps(data)
         })
+        logger.info(f"Init and pay data: {request_params}")
         return [asyncio.create_task(session.post(**request_params))
                 for _ in range(self.requests_count)]
 
